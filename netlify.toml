@@ -1,0 +1,28 @@
+plugins = []
+redirects = []
+
+[functions]
+  directory = "netlify/functions"
+
+  [functions."*"]
+  node_bundler = "esbuild"
+
+[build]
+publish = "."
+publishOrigin = "config"
+commandOrigin = "config"
+command = "echo 'No build needed'"
+
+  [build.environment]
+
+  [build.processing]
+
+    [build.processing.css]
+
+    [build.processing.html]
+
+    [build.processing.images]
+
+    [build.processing.js]
+
+  [build.services]

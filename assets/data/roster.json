@@ -1,0 +1,46 @@
+[
+  {
+    "id": "m001",
+    "name": "SgtSnickers",
+    "role": "Gründer / IGL",
+    "avatar": "/api/roster-avatar?id=m001",
+    "games": ["PUBG", "ARC Raiders"],
+    "stats": { "kd": 3.42, "extractionRate": "68%", "wins": 214 },
+    "clanRole": "Leader",
+    "bio": "Gründer und In-Game-Leader von Leider Geil. Taktik-Nerd mit einer Schwäche für gute Callouts und schlechte Wortwitze.",
+    "funTags": ["IGL", "Taktik-Fuchs"]
+  },
+  {
+    "id": "m002",
+    "name": "FragMaster",
+    "role": "Squad Leader – PUBG",
+    "avatar": "/api/roster-avatar?id=m002",
+    "games": ["PUBG"],
+    "stats": { "kd": 2.87, "extractionRate": "52%", "wins": 156 },
+    "clanRole": "Officer",
+    "bio": "PUBG-Veteran seit Early Access. Führt sein Squad mit ruhiger Hand durch den Bluezone-Sturm – und hat trotzdem immer einen lockeren Spruch auf Lager.",
+    "funTags": ["Sniper", "Loot-Goblin"]
+  },
+  {
+    "id": "m003",
+    "name": "NeonViper",
+    "role": "Support / Medic",
+    "avatar": "/api/roster-avatar?id=m003",
+    "games": ["ARC Raiders"],
+    "stats": { "kd": 1.94, "extractionRate": "74%", "wins": 98 },
+    "clanRole": "Member",
+    "bio": "Hält das Team am Leben – buchstäblich. Ohne NeonViper wäre jede Extraction ein Himmelfahrtskommando.",
+    "funTags": ["Medic", "Team-Player"]
+  },
+  {
+    "id": "m004",
+    "name": "GhostRecon",
+    "role": "Sniper",
+    "avatar": "/api/roster-avatar?id=m004",
+    "games": ["PUBG", "ARC Raiders"],
+    "stats": { "kd": 4.11, "extractionRate": "61%", "wins": 189 },
+    "clanRole": "Member",
+    "bio": "Man hört ihn nie kommen, aber seinen Headshot spürt man sofort. Der stille Beschützer des Squads.",
+    "funTags": ["Sniper", "Ghost"]
+  }
+]

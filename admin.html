@@ -1,0 +1,2827 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – Leider Geil</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── CSS Custom Properties (same as main site) ─── */
+    :root {
+      --clr-bg:           #0d0d12;
+      --clr-surface:      #14141c;
+      --clr-surface-alt:  #1a1a2e;
+      --clr-border:       #2a2a3c;
+      --clr-text:         #e0e0e6;
+      --clr-text-muted:   #7a7a8e;
+      --clr-accent-arc:   #0FF2A9;
+      --clr-accent-pubg:  #FF9C43;
+      --clr-danger:       #ff3b5c;
+      --clr-glass:        rgba(20, 20, 28, .55);
+      --clr-glass-border: rgba(255, 255, 255, .06);
+      --ff-heading: 'Rajdhani', 'Segoe UI', sans-serif;
+      --ff-body:    'Inter', 'Segoe UI', sans-serif;
+      --ff-mono:    'Fira Code', 'Consolas', monospace;
+      --radius:     8px;
+      --radius-lg:  16px;
+      --ease: cubic-bezier(.25, .8, .25, 1);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+    body {
+      font-family: var(--ff-body);
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Scanline Overlay ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(0deg,
+        rgba(15, 242, 169, .03) 0px,
+        rgba(15, 242, 169, .03) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    }
+
+    a { color: var(--clr-accent-arc); text-decoration: none; }
+    a:hover { color: #fff; }
+
+    /* ── Layout ─── */
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ─── */
+    .sidebar {
+      background: var(--clr-surface);
+      border-right: 1px solid var(--clr-border);
+      padding: 2rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .sidebar__logo {
+      font-family: var(--ff-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--clr-accent-arc);
+      text-shadow: 0 0 20px rgba(15, 242, 169, .25);
+    }
+
+    .sidebar__label {
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--clr-text-muted);
+      margin-bottom: .5rem;
+    }
+
+    .sidebar__nav { list-style: none; display: flex; flex-direction: column; gap: .25rem; }
+
+    .sidebar__link {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .7rem 1rem;
+      border-radius: var(--radius);
+      font-family: var(--ff-heading);
+      font-size: .95rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--clr-text-muted);
+      transition: all .25s var(--ease);
+      cursor: pointer;
+    }
+
+    .sidebar__link:hover, .sidebar__link--active {
+      background: var(--clr-surface-alt);
+      color: var(--clr-text);
+    }
+
+    .sidebar__link--active {
+      border-left: 3px solid var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+    }
+
+    .sidebar__link svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .sidebar__back {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-family: var(--ff-mono);
+      font-size: .8rem;
+      color: var(--clr-text-muted);
+      transition: color .2s;
+    }
+    .sidebar__back:hover { color: var(--clr-accent-arc); }
+
+    /* ── Main Content ─── */
+    .admin-main {
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .admin-header__title {
+      font-family: var(--ff-heading);
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .admin-header__title span {
+      color: var(--clr-accent-arc);
+    }
+
+    .admin-header__badge {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      padding: .3rem .8rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+    }
+
+    /* ── Stats Row ─── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--clr-glass);
+      border: 1px solid var(--clr-glass-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--clr-accent-arc), var(--clr-accent-pubg));
+    }
+
+    .stat-card__label {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--clr-text-muted);
+    }
+
+    .stat-card__value {
+      font-family: var(--ff-heading);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--clr-accent-arc);
+      line-height: 1.2;
+    }
+
+    .stat-card__value--pubg { color: var(--clr-accent-pubg); }
+
+    /* ── Section Panels ─── */
+    .panel {
+      background: var(--clr-glass);
+      border: 1px solid var(--clr-glass-border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: var(--clr-surface-alt);
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .panel__title {
+      font-family: var(--ff-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .panel__title svg { width: 18px; height: 18px; color: var(--clr-accent-arc); }
+
+    .panel__actions { display: flex; gap: .5rem; }
+
+    .btn-sm {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      padding: .35rem .85rem;
+      border: 1px solid var(--clr-border);
+      background: var(--clr-surface);
+      color: var(--clr-text-muted);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .2s var(--ease);
+    }
+
+    .btn-sm:hover {
+      border-color: var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+    }
+
+    .btn-sm--danger:hover {
+      border-color: var(--clr-danger);
+      color: var(--clr-danger);
+    }
+
+    .btn-sm--accent {
+      border-color: var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+    }
+    .btn-sm--accent:hover {
+      background: var(--clr-accent-arc);
+      color: var(--clr-bg);
+    }
+
+    .panel__body { padding: 1.5rem; }
+
+    /* ── Applications Table ─── */
+    .app-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .app-table th {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--clr-text-muted);
+      padding: .6rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--clr-border);
+      white-space: nowrap;
+    }
+
+    .app-table td {
+      padding: .8rem 1rem;
+      border-bottom: 1px solid rgba(42, 42, 60, .4);
+      font-size: .9rem;
+      vertical-align: top;
+    }
+
+    .app-table tr:hover td {
+      background: rgba(15, 242, 169, .03);
+    }
+
+    .app-table .tag {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .tag--pubg { color: var(--clr-accent-pubg); border: 1px solid var(--clr-accent-pubg); }
+    .tag--arc  { color: var(--clr-accent-arc);  border: 1px solid var(--clr-accent-arc);  }
+    .tag--both { color: #fff; border: 1px solid var(--clr-border); background: linear-gradient(90deg, rgba(255,156,67,.15), rgba(15,242,169,.15)); }
+
+    .app-about {
+      max-width: 300px;
+      font-size: .85rem;
+      color: var(--clr-text-muted);
+      line-height: 1.5;
+    }
+
+    .app-date {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      color: var(--clr-text-muted);
+    }
+
+    .btn-delete {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      padding: .3rem .7rem;
+      border: 1px solid var(--clr-danger);
+      background: transparent;
+      color: var(--clr-danger);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .2s var(--ease);
+    }
+
+    .btn-delete:hover {
+      background: var(--clr-danger);
+      color: #fff;
+    }
+
+    /* ── Detail Modal ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      background: rgba(0, 0, 0, .7);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      max-width: 560px;
+      width: 90%;
+      overflow: hidden;
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: var(--clr-surface-alt);
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .modal__title {
+      font-family: var(--ff-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .modal__close {
+      background: none;
+      border: none;
+      color: var(--clr-text-muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .modal__close:hover { color: var(--clr-danger); }
+
+    .modal__body { padding: 1.5rem; }
+
+    .modal__field {
+      margin-bottom: 1rem;
+    }
+
+    .modal__label {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--clr-accent-arc);
+      margin-bottom: .25rem;
+    }
+
+    .modal__label::before { content: '> '; }
+
+    .modal__value {
+      font-size: .95rem;
+      padding: .5rem .75rem;
+      background: var(--clr-bg);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+    }
+
+    .modal__actions {
+      display: flex;
+      gap: .5rem;
+      justify-content: flex-end;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--clr-border);
+    }
+
+    /* ── Empty State ─── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--clr-text-muted);
+    }
+
+    .empty-state__icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: .3;
+    }
+
+    .empty-state__text {
+      font-family: var(--ff-mono);
+      font-size: .9rem;
+    }
+
+    /* ── Loading ─── */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      font-family: var(--ff-mono);
+      font-size: .85rem;
+      color: var(--clr-text-muted);
+    }
+
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--clr-border);
+      border-top-color: var(--clr-accent-arc);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-left: .5rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Admin Page Sections (show/hide) ─── */
+    .admin-page { display: none; }
+    .admin-page.active { display: block; }
+
+    /* ── Form styles ─── */
+    .admin-form {
+      display: grid;
+      gap: 1rem;
+      max-width: 500px;
+    }
+
+    .admin-form__group {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+
+    .admin-form__label {
+      font-family: var(--ff-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--clr-text-muted);
+    }
+
+    .admin-form__label::before { content: '> '; color: var(--clr-accent-arc); }
+
+    .admin-form__input,
+    .admin-form__select {
+      font-family: var(--ff-body);
+      font-size: .9rem;
+      padding: .6rem .85rem;
+      background: var(--clr-bg);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      color: var(--clr-text);
+      transition: border-color .2s;
+    }
+
+    .admin-form__input:focus,
+    .admin-form__select:focus {
+      outline: none;
+      border-color: var(--clr-accent-arc);
+    }
+
+    .admin-form__input::placeholder {
+      color: var(--clr-text-muted);
+    }
+
+    .admin-form__submit {
+      font-family: var(--ff-heading);
+      font-size: .95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .7rem 1.5rem;
+      background: transparent;
+      border: 2px solid var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .25s var(--ease);
+      width: fit-content;
+    }
+
+    .admin-form__submit:hover {
+      background: var(--clr-accent-arc);
+      color: var(--clr-bg);
+    }
+
+    .admin-form__submit:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    /* ── Roster Cards in Admin ─── */
+    .admin-roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .admin-roster-card {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .admin-roster-card__avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--clr-accent-arc);
+      margin-bottom: .75rem;
+    }
+
+    .admin-roster-card__name {
+      font-family: var(--ff-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .admin-roster-card__role {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      color: var(--clr-text-muted);
+      margin-bottom: .75rem;
+    }
+
+    .admin-roster-card__delete {
+      position: absolute;
+      top: .75rem;
+      right: .75rem;
+    }
+
+    .admin-roster-card__edit {
+      position: absolute;
+      top: .75rem;
+      left: .75rem;
+    }
+
+    .admin-roster-card__games {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .25rem;
+      margin-top: .5rem;
+    }
+
+    .admin-roster-card__tag {
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .admin-roster-card__tag--pubg { color: var(--clr-accent-pubg); border: 1px solid var(--clr-accent-pubg); }
+    .admin-roster-card__tag--arc { color: var(--clr-accent-arc); border: 1px solid var(--clr-accent-arc); }
+    .admin-roster-card__tag--other { color: var(--clr-text-muted); border: 1px solid var(--clr-border); }
+
+    .admin-roster-card__clan-role {
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: .5rem;
+      color: var(--clr-accent-arc);
+      border: 1px solid var(--clr-accent-arc);
+      background: rgba(15, 242, 169, .08);
+    }
+
+    .admin-roster-card__bio {
+      font-size: .75rem;
+      color: var(--clr-text-muted);
+      margin-top: .5rem;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .admin-roster-card__fun-tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .25rem;
+      margin-top: .5rem;
+    }
+
+    .admin-roster-card__fun-tag {
+      font-family: var(--ff-mono);
+      font-size: .6rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--clr-accent-pubg);
+      background: rgba(255, 156, 67, .1);
+      border: 1px solid rgba(255, 156, 67, .3);
+    }
+
+    /* ── Form Section Headers ─── */
+    .admin-form__section {
+      font-family: var(--ff-heading);
+      font-size: .85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--clr-accent-arc);
+      padding-bottom: .4rem;
+      margin-top: 1rem;
+      margin-bottom: .25rem;
+      border-bottom: 1px solid var(--clr-border);
+    }
+
+    .admin-form__section:first-child { margin-top: 0; }
+
+    .admin-form__hint {
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      color: var(--clr-text-muted);
+      margin-top: .15rem;
+    }
+
+    .admin-form__textarea {
+      font-family: var(--ff-body);
+      font-size: .9rem;
+      padding: .6rem .85rem;
+      background: var(--clr-bg);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      color: var(--clr-text);
+      transition: border-color .2s;
+      resize: vertical;
+      min-height: 70px;
+      line-height: 1.5;
+    }
+
+    .admin-form__textarea:focus {
+      outline: none;
+      border-color: var(--clr-accent-arc);
+      box-shadow: 0 0 0 2px rgba(15, 242, 169, .15);
+    }
+
+    .admin-form__select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230FF2A9' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+
+    .admin-form__select option {
+      background: var(--clr-bg);
+      color: var(--clr-text);
+    }
+
+    /* ── Custom Games Input ─── */
+    .custom-game-row {
+      display: flex;
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+
+    .custom-game-row input {
+      flex: 1;
+    }
+
+    .custom-game-row button {
+      flex-shrink: 0;
+    }
+
+    /* ── Avatar Upload ─── */
+    .avatar-upload-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .75rem;
+      background: var(--clr-surface);
+      border: 1px dashed var(--clr-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .25s var(--ease);
+    }
+
+    .avatar-upload-area:hover {
+      border-color: var(--clr-accent-arc);
+    }
+
+    .avatar-upload-area__preview {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--clr-border);
+      flex-shrink: 0;
+      background: var(--clr-surface-alt);
+    }
+
+    .avatar-upload-area__text {
+      font-family: var(--ff-mono);
+      font-size: .8rem;
+      color: var(--clr-text-muted);
+    }
+
+    .avatar-upload-area__text strong {
+      color: var(--clr-accent-arc);
+    }
+
+    .avatar-upload-status {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      color: var(--clr-text-muted);
+      margin-top: .25rem;
+    }
+
+    .avatar-upload-actions {
+      display: flex;
+      gap: .5rem;
+      margin-top: .5rem;
+    }
+
+    /* ── Games Checkboxes ─── */
+    .games-checkboxes {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .games-checkboxes label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-family: var(--ff-mono);
+      font-size: .85rem;
+      color: var(--clr-text);
+      cursor: pointer;
+    }
+
+    .games-checkboxes input[type="checkbox"] {
+      accent-color: var(--clr-accent-arc);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* ── Edit Modal ─── */
+    .edit-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .edit-modal {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      width: min(500px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .edit-modal__title {
+      font-family: var(--ff-heading);
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--clr-accent-arc);
+      margin-bottom: 1rem;
+    }
+
+    .edit-modal__footer {
+      display: flex;
+      gap: .75rem;
+      margin-top: 1rem;
+    }
+
+    /* ── Event list in Admin ─── */
+    .admin-event-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(42, 42, 60, .4);
+      gap: 1rem;
+    }
+
+    .admin-event-item:last-child { border-bottom: none; }
+
+    .admin-event-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .admin-event-title {
+      font-family: var(--ff-heading);
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .admin-event-meta {
+      font-family: var(--ff-mono);
+      font-size: .75rem;
+      color: var(--clr-text-muted);
+      display: flex;
+      gap: .75rem;
+      margin-top: .25rem;
+    }
+
+    .admin-event-thumb {
+      width: 60px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--clr-border);
+      flex-shrink: 0;
+      background: var(--clr-surface-alt);
+    }
+
+    .admin-event-actions {
+      display: flex;
+      gap: .5rem;
+      flex-shrink: 0;
+    }
+
+    /* Reuse avatar-upload-area for event image upload (rectangular preview) */
+    .image-upload-area {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .75rem;
+      background: var(--clr-surface);
+      border: 1px dashed var(--clr-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .25s var(--ease);
+    }
+
+    .image-upload-area:hover {
+      border-color: var(--clr-accent-arc);
+    }
+
+    .image-upload-area__preview {
+      width: 80px;
+      height: 50px;
+      border-radius: 4px;
+      object-fit: cover;
+      border: 1px solid var(--clr-border);
+      flex-shrink: 0;
+      background: var(--clr-surface-alt);
+    }
+
+    .image-upload-area__text {
+      font-family: var(--ff-mono);
+      font-size: .8rem;
+      color: var(--clr-text-muted);
+    }
+
+    .image-upload-area__text strong {
+      color: var(--clr-accent-arc);
+    }
+
+    /* ── Video list in Admin ─── */
+    .admin-video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .admin-video-card {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .admin-video-card__thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .admin-video-card__body {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+    }
+
+    .admin-video-card__title {
+      font-family: var(--ff-heading);
+      font-size: .95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Banner Preview in Admin ─── */
+    .banner-preview-container {
+      border: 2px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+      background: var(--clr-surface);
+    }
+
+    .banner-preview-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 1920 / 600;
+      object-fit: cover;
+    }
+
+    .banner-preview-label {
+      position: absolute;
+      top: .5rem;
+      left: .5rem;
+      font-family: var(--ff-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: .2rem .6rem;
+      background: rgba(0,0,0,.7);
+      border-radius: var(--radius);
+      color: var(--clr-accent-arc);
+    }
+
+    .banner-tab-btn.active {
+      border-color: var(--clr-accent-arc);
+      color: var(--clr-accent-arc);
+      background: rgba(15, 242, 169, .1);
+    }
+
+    /* ── Responsive ─── */
+    @media (max-width: 900px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar {
+        flex-direction: row;
+        align-items: center;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid var(--clr-border);
+        overflow-x: auto;
+        gap: 1rem;
+      }
+      .sidebar__label { display: none; }
+      .sidebar__nav { flex-direction: row; }
+      .sidebar__back { margin-top: 0; margin-left: auto; }
+      .admin-main { padding: 1.5rem 1rem; }
+
+      .app-table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">Leider Geil</div>
+
+    <div>
+      <div class="sidebar__label">Navigation</div>
+      <ul class="sidebar__nav">
+        <li>
+          <a href="#bewerbungen" class="sidebar__link sidebar__link--active" data-page="page-bewerbungen">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Bewerbungen
+          </a>
+        </li>
+        <li>
+          <a href="#roster" class="sidebar__link" data-page="page-roster">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Clan Roster
+          </a>
+        </li>
+        <li>
+          <a href="#events" class="sidebar__link" data-page="page-events">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Events
+          </a>
+        </li>
+        <li>
+          <a href="#videos" class="sidebar__link" data-page="page-videos">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Videos
+          </a>
+        </li>
+        <li>
+          <a href="#banner" class="sidebar__link" data-page="page-banner">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Banner
+          </a>
+        </li>
+        <li>
+          <a href="#event-anmeldungen" class="sidebar__link" data-page="page-event-anmeldungen">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            Event-Anmeldungen
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <a href="/" class="sidebar__back">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Zurück zur Seite
+    </a>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+    <!-- Header -->
+    <div class="admin-header">
+      <h1 class="admin-header__title">Admin <span>Dashboard</span></h1>
+      <span class="admin-header__badge">v2.0</span>
+    </div>
+
+    <!-- Twitch Status Banner (shows errors/status) -->
+    <div id="twitch-admin-banner" style="display:none; margin:0 0 1.2rem 0; padding:.85rem 1.2rem; border-radius:var(--radius); font-family:var(--ff-mono); font-size:.85rem; line-height:1.5; border:1px solid var(--clr-border); background:var(--clr-surface-alt);">
+      <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+        <span id="twitch-admin-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0;"></span>
+        <strong id="twitch-admin-label" style="font-family:var(--ff-heading);font-size:.95rem;"></strong>
+        <span id="twitch-admin-detail" style="color:var(--clr-text-muted);font-size:.8rem;"></span>
+      </div>
+      <div id="twitch-admin-error" style="display:none; margin-top:.5rem; padding:.6rem .8rem; border-radius:var(--radius); background:rgba(255,59,92,.1); border:1px solid rgba(255,59,92,.25); color:#ff6b82; font-size:.8rem; word-break:break-word;"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: BEWERBUNGEN
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page active" id="page-bewerbungen">
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card__label">Bewerbungen Gesamt</div>
+          <div class="stat-card__value" id="stat-total">–</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">PUBG Bewerber</div>
+          <div class="stat-card__value stat-card__value--pubg" id="stat-pubg">–</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">ARC Raiders Bewerber</div>
+          <div class="stat-card__value" id="stat-arc">–</div>
+        </div>
+      </div>
+
+      <!-- Bewerbungen Panel -->
+      <section class="panel" id="bewerbungen">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Eingegangene Bewerbungen
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh" title="Aktualisieren">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="applications-body">
+          <div class="loading">Lade Bewerbungen</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: CLAN ROSTER
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page" id="page-roster">
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            Neues Mitglied hinzufügen
+          </h2>
+        </div>
+        <div class="panel__body">
+          <form class="admin-form" id="roster-form">
+            <div class="admin-form__section">// Basis-Info</div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="roster-name">Name</label>
+              <input class="admin-form__input" type="text" id="roster-name" placeholder="Gaming-Name" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="roster-role">Rolle / Position</label>
+              <input class="admin-form__input" type="text" id="roster-role" placeholder="z.B. Entry Fragger, Squad Leader – PUBG" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="roster-clan-role">Rang im Clan</label>
+              <select class="admin-form__input admin-form__select" id="roster-clan-role">
+                <option value="Leader">Leader</option>
+                <option value="Co-Leader">Co-Leader</option>
+                <option value="Officer">Officer</option>
+                <option value="Member" selected>Member</option>
+                <option value="Recruit">Recruit</option>
+              </select>
+            </div>
+
+            <div class="admin-form__section">// Spiele &amp; Steckbrief</div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Hauptspiele</label>
+              <div class="games-checkboxes" id="roster-games-checkboxes">
+                <label><input type="checkbox" name="roster-games" value="PUBG"> PUBG</label>
+                <label><input type="checkbox" name="roster-games" value="ARC Raiders"> ARC Raiders</label>
+              </div>
+              <div class="custom-game-row">
+                <input class="admin-form__input" type="text" id="roster-custom-game" placeholder="Weiteres Spiel hinzufügen…">
+                <button type="button" class="btn-sm" onclick="addCustomGame('roster')">+</button>
+              </div>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="roster-bio">Kurzbeschreibung / Bio (1–3 Sätze)</label>
+              <textarea class="admin-form__textarea" id="roster-bio" placeholder="Kurze Beschreibung des Mitglieds…" maxlength="300"></textarea>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="roster-fun-tags">Fun-Tags (kommagetrennt)</label>
+              <input class="admin-form__input" type="text" id="roster-fun-tags" placeholder='z.B. Sniper, IGL, Loot-Goblin'>
+              <div class="admin-form__hint">Kurze Tags, die den Spielstil beschreiben – mit Komma trennen.</div>
+            </div>
+
+            <div class="admin-form__section">// Profilbild</div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Profilbild (JPEG/PNG/WebP, max. 5 MB)</label>
+              <div class="admin-form__hint">Empfehlung: Quadratisch oder 4:5, ca. 500–800 px breit, damit alle Karten einheitlich aussehen.</div>
+              <div class="avatar-upload-area" id="roster-avatar-area" onclick="document.getElementById('roster-avatar-file').click()">
+                <img class="avatar-upload-area__preview" id="roster-avatar-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a1a2e' width='64' height='64'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='22'%3E%3F%3C/text%3E%3C/svg%3E" alt="Vorschau">
+                <div class="avatar-upload-area__text">
+                  <strong>Klicken</strong> um ein Bild auszuwählen<br>
+                  oder per Drag &amp; Drop hierher ziehen
+                </div>
+              </div>
+              <input type="file" id="roster-avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <div class="avatar-upload-status" id="roster-avatar-status"></div>
+            </div>
+            <button type="submit" class="admin-form__submit" id="roster-submit">+ Mitglied hinzufügen</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Aktuelle Mitglieder
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh-roster">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="roster-list-body">
+          <div class="loading">Lade Roster</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: EVENTS
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page" id="page-events">
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Neues Event erstellen
+          </h2>
+        </div>
+        <div class="panel__body">
+          <form class="admin-form" id="events-form">
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="event-title">Titel</label>
+              <input class="admin-form__input" type="text" id="event-title" placeholder="Event-Name" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="event-date">Datum</label>
+              <input class="admin-form__input" type="date" id="event-date" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="event-game">Spiel</label>
+              <select class="admin-form__select" id="event-game" required>
+                <option value="" disabled selected>-- Spiel wählen --</option>
+                <option value="PUBG">PUBG</option>
+                <option value="ARC Raiders">ARC Raiders</option>
+                <option value="Mixed">Mixed</option>
+              </select>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="event-desc">Beschreibung (optional)</label>
+              <input class="admin-form__input" type="text" id="event-desc" placeholder="Kurze Beschreibung des Events">
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label">Bild (JPEG/PNG/WebP, max. 5 MB, optional)</label>
+              <div class="image-upload-area" id="event-image-area" onclick="document.getElementById('event-image-file').click()">
+                <img class="image-upload-area__preview" id="event-image-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Crect fill='%231a1a2e' width='80' height='50'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='14'%3E%3F%3C/text%3E%3C/svg%3E" alt="Vorschau">
+                <div class="image-upload-area__text">
+                  <strong>Klicken</strong> um ein Bild auszuwählen<br>
+                  oder per Drag &amp; Drop hierher ziehen
+                </div>
+              </div>
+              <input type="file" id="event-image-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <div class="avatar-upload-status" id="event-image-status"></div>
+            </div>
+            <button type="submit" class="admin-form__submit" id="events-submit">+ Event erstellen</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Alle Events
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh-events">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="events-list-body">
+          <div class="loading">Lade Events</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: VIDEOS
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page" id="page-videos">
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Neues Video hinzufügen
+          </h2>
+        </div>
+        <div class="panel__body">
+          <form class="admin-form" id="videos-form">
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="video-title">Titel</label>
+              <input class="admin-form__input" type="text" id="video-title" placeholder="Video-Titel" required>
+            </div>
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="video-url">YouTube-Link</label>
+              <input class="admin-form__input" type="url" id="video-url" placeholder="https://www.youtube.com/watch?v=..." required>
+            </div>
+            <button type="submit" class="admin-form__submit" id="videos-submit">+ Video hinzufügen</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Video-Galerie
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh-videos">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="videos-list-body">
+          <div class="loading">Lade Videos</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: BANNER
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page" id="page-banner">
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Header-Banner verwalten
+          </h2>
+        </div>
+        <div class="panel__body">
+          <p style="font-family:var(--ff-mono);font-size:.8rem;color:var(--clr-text-muted);margin-bottom:1.5rem;">
+            Empfohlene Aufl&ouml;sung: <strong style="color:var(--clr-accent-arc);">1920 &times; 600 px</strong>. Das Bild wird als Header-Banner auf der Startseite angezeigt.
+          </p>
+
+          <form class="admin-form" id="banner-form" style="max-width:600px;">
+            <!-- Tab selection -->
+            <div style="display:flex;gap:.5rem;margin-bottom:1rem;">
+              <button type="button" class="btn-sm btn-sm--accent banner-tab-btn active" data-tab="url">Bild-URL</button>
+              <button type="button" class="btn-sm banner-tab-btn" data-tab="upload">Datei hochladen</button>
+            </div>
+
+            <!-- URL input -->
+            <div class="admin-form__group banner-tab" id="banner-tab-url">
+              <label class="admin-form__label" for="banner-url">Bild-URL</label>
+              <input class="admin-form__input" type="url" id="banner-url" placeholder="https://beispiel.de/banner.jpg">
+            </div>
+
+            <!-- File upload -->
+            <div class="admin-form__group banner-tab" id="banner-tab-upload" style="display:none;">
+              <label class="admin-form__label" for="banner-file">Bild-Datei</label>
+              <input class="admin-form__input" type="file" id="banner-file" accept="image/*" style="padding:.4rem;">
+              <div id="banner-upload-status" style="font-family:var(--ff-mono);font-size:.75rem;color:var(--clr-text-muted);margin-top:.25rem;"></div>
+            </div>
+
+            <button type="submit" class="admin-form__submit" id="banner-submit">Banner speichern</button>
+            <button type="button" class="btn-sm btn-sm--danger" id="banner-remove" style="margin-top:.5rem;">Banner entfernen</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Vorschau
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh-banner">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="banner-preview-body">
+          <div class="loading">Lade Banner</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE: EVENT-ANMELDUNGEN
+         ═══════════════════════════════════════════════════════ -->
+    <div class="admin-page" id="page-event-anmeldungen">
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card__label">Anmeldungen Gesamt</div>
+          <div class="stat-card__value" id="stat-evt-total">&ndash;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">PUBG Anmeldungen</div>
+          <div class="stat-card__value stat-card__value--pubg" id="stat-evt-pubg">&ndash;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__label">ARC Raiders Anmeldungen</div>
+          <div class="stat-card__value" id="stat-evt-arc">&ndash;</div>
+        </div>
+      </div>
+
+      <!-- Event-Anmeldungen Panel -->
+      <section class="panel" id="event-anmeldungen">
+        <div class="panel__header">
+          <h2 class="panel__title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            Event-Anmeldungen
+          </h2>
+          <div class="panel__actions">
+            <button class="btn-sm" id="btn-refresh-evt-registrations" title="Aktualisieren">Aktualisieren</button>
+          </div>
+        </div>
+        <div class="panel__body" id="evt-registrations-body">
+          <div class="loading">Lade Event-Anmeldungen</div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 class="modal__title" id="modal-title">Bewerbung Details</h3>
+      <button class="modal__close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal__body" id="modal-body"></div>
+    <div class="modal__actions">
+      <button class="btn-delete" id="modal-delete">Löschen</button>
+      <button class="btn-sm" id="modal-close-btn">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const API_URL = '/api/applications';
+const ROSTER_API = '/api/roster';
+const ROSTER_AVATAR_API = '/api/roster-avatar';
+const EVENTS_API = '/api/events';
+const EVENT_IMAGE_API = '/api/event-image';
+const VIDEOS_API = '/api/videos';
+const EVT_REGISTRATIONS_API = '/api/event-registrations';
+
+const SETTINGS_API = '/api/settings';
+const BANNER_IMAGE_API = '/api/banner-image';
+
+let currentApplications = [];
+let currentModalId = null;
+
+// ══════════════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════════════
+const navLinks = document.querySelectorAll('.sidebar__link[data-page]');
+const pages = document.querySelectorAll('.admin-page');
+
+function switchPage(pageId) {
+  pages.forEach(p => p.classList.remove('active'));
+  navLinks.forEach(l => l.classList.remove('sidebar__link--active'));
+
+  const page = document.getElementById(pageId);
+  const link = document.querySelector(`.sidebar__link[data-page="${pageId}"]`);
+  if (page) page.classList.add('active');
+  if (link) link.classList.add('sidebar__link--active');
+
+  // Load data for the page
+  if (pageId === 'page-bewerbungen') loadApplications();
+  if (pageId === 'page-roster') loadRoster();
+  if (pageId === 'page-events') loadEvents();
+  if (pageId === 'page-videos') loadVideos();
+  if (pageId === 'page-banner') loadBannerSettings();
+  if (pageId === 'page-event-anmeldungen') loadEventRegistrations();
+}
+
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchPage(link.dataset.page);
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// BEWERBUNGEN (Applications)
+// ══════════════════════════════════════════════════════════
+async function loadApplications() {
+  const body = document.getElementById('applications-body');
+  body.innerHTML = '<div class="loading">Lade Bewerbungen</div>';
+
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    currentApplications = await res.json();
+    renderApplications();
+    updateStats();
+  } catch (err) {
+    console.error('[Admin]', err);
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler beim Laden: ${err.message}</div></div>`;
+  }
+}
+
+function getGameTag(game) {
+  if (game === 'PUBG') return '<span class="tag tag--pubg">PUBG</span>';
+  if (game === 'ARC Raiders') return '<span class="tag tag--arc">ARC</span>';
+  if (game === 'Beides') return '<span class="tag tag--both">PUBG + ARC</span>';
+  return `<span class="tag">${game}</span>`;
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('de-DE', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function renderApplications() {
+  const body = document.getElementById('applications-body');
+
+  if (currentApplications.length === 0) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">&#128196;</div>
+        <div class="empty-state__text">Noch keine Bewerbungen eingegangen.</div>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <table class="app-table">
+      <thead>
+        <tr>
+          <th>Gaming-ID</th>
+          <th>Alter</th>
+          <th>Spiel</th>
+          <th>Rolle</th>
+          <th>\u00dcber mich</th>
+          <th>Datum</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${currentApplications.map(app => `
+          <tr>
+            <td><strong>${escapeHtml(app.gamingId)}</strong></td>
+            <td>${escapeHtml(String(app.alter))}</td>
+            <td>${getGameTag(app.hauptspiel)}</td>
+            <td>${escapeHtml(app.rolle)}</td>
+            <td class="app-about">${escapeHtml(truncate(app.ueberMich, 80))}</td>
+            <td class="app-date">${formatDate(app.createdAt)}</td>
+            <td>
+              <button class="btn-sm" onclick="showDetail('${app.id}')">Details</button>
+              <button class="btn-delete" onclick="deleteApplication('${app.id}')">L\u00f6schen</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = currentApplications.length;
+  document.getElementById('stat-pubg').textContent = currentApplications.filter(a => a.hauptspiel === 'PUBG' || a.hauptspiel === 'Beides').length;
+  document.getElementById('stat-arc').textContent = currentApplications.filter(a => a.hauptspiel === 'ARC Raiders' || a.hauptspiel === 'Beides').length;
+}
+
+function showDetail(id) {
+  const app = currentApplications.find(a => a.id === id);
+  if (!app) return;
+  currentModalId = id;
+  currentEvtModalId = null;
+
+  document.getElementById('modal-title').textContent = `Bewerbung: ${app.gamingId}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal__field">
+      <div class="modal__label">Gaming-ID</div>
+      <div class="modal__value">${escapeHtml(app.gamingId)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Alter</div>
+      <div class="modal__value">${escapeHtml(String(app.alter))}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Hauptspiel</div>
+      <div class="modal__value">${escapeHtml(app.hauptspiel)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Rolle</div>
+      <div class="modal__value">${escapeHtml(app.rolle)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">\u00dcber mich</div>
+      <div class="modal__value" style="white-space:pre-wrap;">${escapeHtml(app.ueberMich)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Eingegangen am</div>
+      <div class="modal__value">${formatDate(app.createdAt)}</div>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  currentModalId = null;
+  currentEvtModalId = null;
+}
+
+async function deleteApplication(id) {
+  if (!confirm('Bewerbung wirklich l\u00f6schen?')) return;
+
+  try {
+    const res = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    closeModal();
+    await loadApplications();
+  } catch (err) {
+    alert('Fehler beim L\u00f6schen: ' + err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// CLAN ROSTER
+// ══════════════════════════════════════════════════════════
+let rosterAvatarFile = null;
+let editAvatarFile = null;
+
+// Drag & drop support for new member form
+const rosterAvatarArea = document.getElementById('roster-avatar-area');
+rosterAvatarArea.addEventListener('dragover', (e) => { e.preventDefault(); rosterAvatarArea.style.borderColor = 'var(--clr-accent-arc)'; });
+rosterAvatarArea.addEventListener('dragleave', () => { rosterAvatarArea.style.borderColor = ''; });
+rosterAvatarArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  rosterAvatarArea.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) handleAvatarFileSelect(file);
+});
+
+document.getElementById('roster-avatar-file').addEventListener('change', (e) => {
+  if (e.target.files[0]) handleAvatarFileSelect(e.target.files[0]);
+});
+
+function handleAvatarFileSelect(file) {
+  const status = document.getElementById('roster-avatar-status');
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    status.textContent = 'Nur JPEG, PNG oder WebP erlaubt.';
+    status.style.color = 'var(--clr-danger)';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    status.textContent = 'Datei zu groß (max. 5 MB).';
+    status.style.color = 'var(--clr-danger)';
+    return;
+  }
+  rosterAvatarFile = file;
+  const preview = document.getElementById('roster-avatar-preview');
+  preview.src = URL.createObjectURL(file);
+  status.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+  status.style.color = 'var(--clr-accent-arc)';
+}
+
+async function uploadAvatar(memberId, file) {
+  const res = await fetch(`${ROSTER_AVATAR_API}?id=${encodeURIComponent(memberId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || `Upload fehlgeschlagen (HTTP ${res.status})`);
+  }
+  return await res.json();
+}
+
+async function loadRoster() {
+  const body = document.getElementById('roster-list-body');
+  body.innerHTML = '<div class="loading">Lade Roster</div>';
+
+  try {
+    const res = await fetch(ROSTER_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const members = await res.json();
+    renderRosterAdmin(members);
+  } catch (err) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler: ${err.message}</div></div>`;
+  }
+}
+
+function renderRosterAdmin(members) {
+  const body = document.getElementById('roster-list-body');
+
+  if (members.length === 0) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#128101;</div><div class="empty-state__text">Keine Mitglieder vorhanden.</div></div>`;
+    return;
+  }
+
+  body.innerHTML = `<div class="admin-roster-grid">${members.map(m => {
+    const avatarSrc = m.avatar ? escapeHtml(m.avatar) + (m.avatar.startsWith('/api/roster-avatar') ? '&t=' + Math.floor(Date.now() / 60000) : '') : '';
+    const gamesHtml = (m.games || []).map(g => {
+      const cls = g === 'PUBG' ? 'pubg' : g === 'ARC Raiders' ? 'arc' : 'other';
+      return `<span class="admin-roster-card__tag admin-roster-card__tag--${cls}">${escapeHtml(g)}</span>`;
+    }).join('');
+    const clanRoleHtml = m.clanRole ? `<div class="admin-roster-card__clan-role">${escapeHtml(m.clanRole)}</div>` : '';
+    const bioHtml = m.bio ? `<div class="admin-roster-card__bio">${escapeHtml(m.bio)}</div>` : '';
+    const funTagsHtml = (m.funTags || []).length > 0
+      ? `<div class="admin-roster-card__fun-tags">${m.funTags.map(t => `<span class="admin-roster-card__fun-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+      : '';
+    return `
+    <div class="admin-roster-card" data-id="${escapeHtml(m.id)}">
+      <button class="btn-sm admin-roster-card__edit" onclick="openEditMember('${escapeHtml(m.id)}')">&#9998;</button>
+      <button class="btn-delete admin-roster-card__delete" onclick="deleteRosterMember('${escapeHtml(m.id)}')">&#10005;</button>
+      <img class="admin-roster-card__avatar" src="${avatarSrc}" alt="${escapeHtml(m.name)}" loading="lazy"
+           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 80 80%27%3E%3Crect fill=%27%231a1a2e%27 width=%2780%27 height=%2780%27/%3E%3Ctext x=%2750%25%27 y=%2755%25%27 text-anchor=%27middle%27 fill=%27%237a7a8e%27 font-size=%2724%27%3E${escapeHtml(m.name.slice(0,2).toUpperCase())}%3C/text%3E%3C/svg%3E'">
+      <div class="admin-roster-card__name">${escapeHtml(m.name)}</div>
+      <div class="admin-roster-card__role">${escapeHtml(m.role)}</div>
+      ${clanRoleHtml}
+      <div class="admin-roster-card__games">${gamesHtml}</div>
+      ${funTagsHtml}
+      ${bioHtml}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// Store all members for edit lookups
+let currentRosterMembers = [];
+
+async function loadRosterForEdit() {
+  try {
+    const res = await fetch(ROSTER_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    currentRosterMembers = await res.json();
+  } catch { currentRosterMembers = []; }
+}
+
+function openEditMember(id) {
+  // Fetch latest data first
+  fetch(ROSTER_API).then(r => r.json()).then(members => {
+    currentRosterMembers = members;
+    const m = members.find(x => x.id === id);
+    if (!m) { alert('Mitglied nicht gefunden.'); return; }
+
+    const avatarSrc = m.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a1a2e' width='64' height='64'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='22'%3E%3F%3C/text%3E%3C/svg%3E";
+    const games = m.games || [];
+    const clanRole = m.clanRole || 'Member';
+    const bio = m.bio || '';
+    const funTags = (m.funTags || []).join(', ');
+
+    // Build custom game checkboxes for any game not in the default list
+    const defaultGames = ['PUBG', 'ARC Raiders'];
+    const customGames = games.filter(g => !defaultGames.includes(g));
+    const customGamesCheckboxes = customGames.map(g =>
+      `<label><input type="checkbox" name="edit-games" value="${escapeHtml(g)}" checked> ${escapeHtml(g)}</label>`
+    ).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'edit-overlay';
+    overlay.id = 'edit-member-overlay';
+    overlay.innerHTML = `
+      <div class="edit-modal">
+        <div class="edit-modal__title">Mitglied bearbeiten</div>
+        <form class="admin-form" id="edit-member-form">
+          <input type="hidden" id="edit-member-id" value="${escapeHtml(m.id)}">
+          <div class="admin-form__section">// Basis-Info</div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Name</label>
+            <input class="admin-form__input" type="text" id="edit-member-name" value="${escapeHtml(m.name)}" required>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Rolle / Position</label>
+            <input class="admin-form__input" type="text" id="edit-member-role" value="${escapeHtml(m.role)}" required>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Rang im Clan</label>
+            <select class="admin-form__input admin-form__select" id="edit-member-clan-role">
+              <option value="Leader" ${clanRole === 'Leader' ? 'selected' : ''}>Leader</option>
+              <option value="Co-Leader" ${clanRole === 'Co-Leader' ? 'selected' : ''}>Co-Leader</option>
+              <option value="Officer" ${clanRole === 'Officer' ? 'selected' : ''}>Officer</option>
+              <option value="Member" ${clanRole === 'Member' ? 'selected' : ''}>Member</option>
+              <option value="Recruit" ${clanRole === 'Recruit' ? 'selected' : ''}>Recruit</option>
+            </select>
+          </div>
+          <div class="admin-form__section">// Spiele &amp; Steckbrief</div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Hauptspiele</label>
+            <div class="games-checkboxes" id="edit-games-checkboxes">
+              <label><input type="checkbox" name="edit-games" value="PUBG" ${games.includes('PUBG') ? 'checked' : ''}> PUBG</label>
+              <label><input type="checkbox" name="edit-games" value="ARC Raiders" ${games.includes('ARC Raiders') ? 'checked' : ''}> ARC Raiders</label>
+              ${customGamesCheckboxes}
+            </div>
+            <div class="custom-game-row">
+              <input class="admin-form__input" type="text" id="edit-custom-game" placeholder="Weiteres Spiel hinzufügen…">
+              <button type="button" class="btn-sm" onclick="addCustomGame('edit')">+</button>
+            </div>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Kurzbeschreibung / Bio</label>
+            <textarea class="admin-form__textarea" id="edit-member-bio" maxlength="300">${escapeHtml(bio)}</textarea>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Fun-Tags (kommagetrennt)</label>
+            <input class="admin-form__input" type="text" id="edit-member-fun-tags" value="${escapeHtml(funTags)}">
+          </div>
+          <div class="admin-form__section">// Profilbild</div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Profilbild</label>
+            <div class="admin-form__hint">Empfehlung: Quadratisch oder 4:5, ca. 500–800 px breit.</div>
+            <div class="avatar-upload-area" id="edit-avatar-area" onclick="document.getElementById('edit-avatar-file').click()">
+              <img class="avatar-upload-area__preview" id="edit-avatar-preview" src="${escapeHtml(avatarSrc)}" alt="Vorschau"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect fill=%27%231a1a2e%27 width=%2764%27 height=%2764%27/%3E%3Ctext x=%2750%25%27 y=%2755%25%27 text-anchor=%27middle%27 fill=%27%237a7a8e%27 font-size=%2722%27%3E%3F%3C/text%3E%3C/svg%3E'">
+              <div class="avatar-upload-area__text">
+                <strong>Klicken</strong> um ein neues Bild auszuwählen
+              </div>
+            </div>
+            <input type="file" id="edit-avatar-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+            <div class="avatar-upload-status" id="edit-avatar-status"></div>
+            <div class="avatar-upload-actions">
+              <button type="button" class="btn-sm" id="edit-avatar-remove" style="color:var(--clr-danger);border-color:var(--clr-danger);">Bild entfernen</button>
+            </div>
+          </div>
+          <div class="edit-modal__footer">
+            <button type="submit" class="admin-form__submit" id="edit-member-save">Speichern</button>
+            <button type="button" class="btn-sm" id="edit-member-cancel">Abbrechen</button>
+          </div>
+        </form>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    editAvatarFile = null;
+    let editRemoveAvatar = false;
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeEditModal(); });
+    document.getElementById('edit-member-cancel').addEventListener('click', closeEditModal);
+
+    // File select
+    document.getElementById('edit-avatar-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      const status = document.getElementById('edit-avatar-status');
+      if (!allowed.includes(file.type)) {
+        status.textContent = 'Nur JPEG, PNG oder WebP erlaubt.';
+        status.style.color = 'var(--clr-danger)';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        status.textContent = 'Datei zu groß (max. 5 MB).';
+        status.style.color = 'var(--clr-danger)';
+        return;
+      }
+      editAvatarFile = file;
+      editRemoveAvatar = false;
+      document.getElementById('edit-avatar-preview').src = URL.createObjectURL(file);
+      status.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+      status.style.color = 'var(--clr-accent-arc)';
+    });
+
+    // Drag & drop on edit area
+    const editArea = document.getElementById('edit-avatar-area');
+    editArea.addEventListener('dragover', (e) => { e.preventDefault(); editArea.style.borderColor = 'var(--clr-accent-arc)'; });
+    editArea.addEventListener('dragleave', () => { editArea.style.borderColor = ''; });
+    editArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      editArea.style.borderColor = '';
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        // Trigger the same logic as file input change
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('edit-avatar-file').files = dt.files;
+        document.getElementById('edit-avatar-file').dispatchEvent(new Event('change'));
+      }
+    });
+
+    // Remove avatar
+    document.getElementById('edit-avatar-remove').addEventListener('click', () => {
+      editRemoveAvatar = true;
+      editAvatarFile = null;
+      document.getElementById('edit-avatar-preview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a1a2e' width='64' height='64'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='22'%3E%3F%3C/text%3E%3C/svg%3E";
+      document.getElementById('edit-avatar-status').textContent = 'Bild wird beim Speichern entfernt.';
+      document.getElementById('edit-avatar-status').style.color = 'var(--clr-accent-pubg)';
+    });
+
+    // Save
+    document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('edit-member-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Speichern...';
+
+      try {
+        const memberId = document.getElementById('edit-member-id').value;
+        const name = document.getElementById('edit-member-name').value.trim();
+        const role = document.getElementById('edit-member-role').value.trim();
+        const editGames = [...document.querySelectorAll('input[name="edit-games"]:checked')].map(c => c.value);
+        const editClanRole = document.getElementById('edit-member-clan-role').value;
+        const editBio = document.getElementById('edit-member-bio').value.trim();
+        const editFunTags = document.getElementById('edit-member-fun-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+        let avatarUrl = m.avatar;
+
+        // Upload new avatar if selected
+        if (editAvatarFile) {
+          const uploadResult = await uploadAvatar(memberId, editAvatarFile);
+          avatarUrl = uploadResult.url;
+        } else if (editRemoveAvatar) {
+          // Delete avatar from store
+          await fetch(`${ROSTER_AVATAR_API}?id=${encodeURIComponent(memberId)}`, { method: 'DELETE' });
+          avatarUrl = `https://via.placeholder.com/160/1a1a2e/0FF2A9?text=${encodeURIComponent(name.slice(0, 2).toUpperCase())}`;
+        }
+
+        // Update member data
+        const updateRes = await fetch(ROSTER_API, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: memberId, name, role, avatar: avatarUrl, games: editGames, clanRole: editClanRole, bio: editBio, funTags: editFunTags }),
+        });
+        if (!updateRes.ok) {
+          const data = await updateRes.json();
+          throw new Error(data.error || `HTTP ${updateRes.status}`);
+        }
+
+        closeEditModal();
+        await loadRoster();
+      } catch (err) {
+        alert('Fehler: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Speichern';
+      }
+    });
+  }).catch(err => alert('Fehler beim Laden: ' + err.message));
+}
+
+function closeEditModal() {
+  const overlay = document.getElementById('edit-member-overlay');
+  if (overlay) overlay.remove();
+  editAvatarFile = null;
+}
+
+async function deleteRosterMember(id) {
+  if (!confirm('Mitglied wirklich entfernen?')) return;
+  try {
+    // Delete avatar too
+    try { await fetch(`${ROSTER_AVATAR_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch {}
+    const res = await fetch(`${ROSTER_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await loadRoster();
+  } catch (err) {
+    alert('Fehler beim Löschen: ' + err.message);
+  }
+}
+
+// Add custom game checkbox dynamically
+function addCustomGame(prefix) {
+  const input = document.getElementById(`${prefix}-custom-game`);
+  const gameName = input.value.trim();
+  if (!gameName) return;
+  const container = document.getElementById(`${prefix}-games-checkboxes`);
+  const checkboxName = prefix === 'edit' ? 'edit-games' : 'roster-games';
+  // Avoid duplicates
+  const existing = [...container.querySelectorAll(`input[name="${checkboxName}"]`)].map(c => c.value.toLowerCase());
+  if (existing.includes(gameName.toLowerCase())) { input.value = ''; return; }
+  const label = document.createElement('label');
+  label.innerHTML = `<input type="checkbox" name="${checkboxName}" value="${escapeHtml(gameName)}" checked> ${escapeHtml(gameName)}`;
+  container.appendChild(label);
+  input.value = '';
+}
+
+document.getElementById('roster-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('roster-submit');
+  btn.disabled = true;
+  btn.textContent = 'Wird gespeichert...';
+
+  const name = document.getElementById('roster-name').value.trim();
+  const role = document.getElementById('roster-role').value.trim();
+  const games = [...document.querySelectorAll('input[name="roster-games"]:checked')].map(c => c.value);
+  const clanRole = document.getElementById('roster-clan-role').value;
+  const bio = document.getElementById('roster-bio').value.trim();
+  const funTags = document.getElementById('roster-fun-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+  try {
+    // Create member first (to get ID)
+    const res = await fetch(ROSTER_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, role, games, clanRole, bio, funTags }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    const result = await res.json();
+    const memberId = result.id;
+
+    // Upload avatar if selected
+    if (rosterAvatarFile) {
+      const uploadResult = await uploadAvatar(memberId, rosterAvatarFile);
+      // Update member with avatar URL
+      await fetch(ROSTER_API, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: memberId, avatar: uploadResult.url }),
+      });
+    }
+
+    document.getElementById('roster-form').reset();
+    document.getElementById('roster-avatar-preview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a1a2e' width='64' height='64'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='22'%3E%3F%3C/text%3E%3C/svg%3E";
+    document.getElementById('roster-avatar-status').textContent = '';
+    rosterAvatarFile = null;
+    await loadRoster();
+  } catch (err) {
+    alert('Fehler: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '+ Mitglied hinzufügen';
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// EVENT IMAGE UPLOAD (mirrors roster avatar upload)
+// ══════════════════════════════════════════════════════════
+let eventImageFile = null;
+let editEventImageFile = null;
+
+const eventImageArea = document.getElementById('event-image-area');
+eventImageArea.addEventListener('dragover', (e) => { e.preventDefault(); eventImageArea.style.borderColor = 'var(--clr-accent-arc)'; });
+eventImageArea.addEventListener('dragleave', () => { eventImageArea.style.borderColor = ''; });
+eventImageArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  eventImageArea.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file) handleEventImageFileSelect(file);
+});
+
+document.getElementById('event-image-file').addEventListener('change', (e) => {
+  if (e.target.files[0]) handleEventImageFileSelect(e.target.files[0]);
+});
+
+function handleEventImageFileSelect(file) {
+  const status = document.getElementById('event-image-status');
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    status.textContent = 'Nur JPEG, PNG oder WebP erlaubt.';
+    status.style.color = 'var(--clr-danger)';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    status.textContent = 'Datei zu groß (max. 5 MB).';
+    status.style.color = 'var(--clr-danger)';
+    return;
+  }
+  eventImageFile = file;
+  const preview = document.getElementById('event-image-preview');
+  preview.src = URL.createObjectURL(file);
+  status.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+  status.style.color = 'var(--clr-accent-arc)';
+}
+
+async function uploadEventImage(eventId, file) {
+  const res = await fetch(`${EVENT_IMAGE_API}?id=${encodeURIComponent(eventId)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || `Upload fehlgeschlagen (HTTP ${res.status})`);
+  }
+  return await res.json();
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════════════════
+async function loadEvents() {
+  const body = document.getElementById('events-list-body');
+  body.innerHTML = '<div class="loading">Lade Events</div>';
+
+  try {
+    const res = await fetch(EVENTS_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const events = await res.json();
+    renderEventsAdmin(events);
+  } catch (err) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler: ${err.message}</div></div>`;
+  }
+}
+
+function renderEventsAdmin(events) {
+  const body = document.getElementById('events-list-body');
+
+  if (events.length === 0) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#128197;</div><div class="empty-state__text">Keine Events vorhanden.</div></div>`;
+    return;
+  }
+
+  body.innerHTML = events.map(ev => {
+    const dateStr = new Date(ev.date).toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+    const thumbHtml = ev.image
+      ? `<img class="admin-event-thumb" src="${escapeHtml(ev.image)}${ev.image.startsWith('/api/event-image') ? (ev.image.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 60000) : ''}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : '';
+    return `
+      <div class="admin-event-item">
+        ${thumbHtml}
+        <div class="admin-event-info">
+          <div class="admin-event-title">${escapeHtml(ev.title)}</div>
+          <div class="admin-event-meta">
+            <span>${dateStr}</span>
+            <span>${getGameTag(ev.game)}</span>
+          </div>
+        </div>
+        <div class="admin-event-actions">
+          <button class="btn-sm" onclick="openEditEvent('${ev.id}')">&#9998;</button>
+          <button class="btn-delete" onclick="deleteEvent('${ev.id}')">Löschen</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Event wirklich löschen?')) return;
+  try {
+    // Delete event image too
+    try { await fetch(`${EVENT_IMAGE_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch {}
+    const res = await fetch(`${EVENTS_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await loadEvents();
+  } catch (err) {
+    alert('Fehler beim Löschen: ' + err.message);
+  }
+}
+
+function openEditEvent(id) {
+  fetch(EVENTS_API).then(r => r.json()).then(events => {
+    const ev = events.find(x => x.id === id);
+    if (!ev) { alert('Event nicht gefunden.'); return; }
+
+    const imgSrc = ev.image
+      ? escapeHtml(ev.image) + (ev.image.startsWith('/api/event-image') ? (ev.image.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 60000) : '')
+      : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Crect fill='%231a1a2e' width='80' height='50'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='14'%3E%3F%3C/text%3E%3C/svg%3E";
+
+    const overlay = document.createElement('div');
+    overlay.className = 'edit-overlay';
+    overlay.id = 'edit-event-overlay';
+    overlay.innerHTML = `
+      <div class="edit-modal">
+        <div class="edit-modal__title">Event bearbeiten</div>
+        <form class="admin-form" id="edit-event-form">
+          <input type="hidden" id="edit-event-id" value="${escapeHtml(ev.id)}">
+          <div class="admin-form__group">
+            <label class="admin-form__label">Titel</label>
+            <input class="admin-form__input" type="text" id="edit-event-title" value="${escapeHtml(ev.title)}" required>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Datum</label>
+            <input class="admin-form__input" type="date" id="edit-event-date" value="${escapeHtml(ev.date)}" required>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Spiel</label>
+            <select class="admin-form__select" id="edit-event-game" required>
+              <option value="PUBG" ${ev.game === 'PUBG' ? 'selected' : ''}>PUBG</option>
+              <option value="ARC Raiders" ${ev.game === 'ARC Raiders' ? 'selected' : ''}>ARC Raiders</option>
+              <option value="Mixed" ${ev.game === 'Mixed' ? 'selected' : ''}>Mixed</option>
+            </select>
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Beschreibung</label>
+            <input class="admin-form__input" type="text" id="edit-event-desc" value="${escapeHtml(ev.description || '')}">
+          </div>
+          <div class="admin-form__group">
+            <label class="admin-form__label">Bild</label>
+            <div class="image-upload-area" id="edit-event-image-area" onclick="document.getElementById('edit-event-image-file').click()">
+              <img class="image-upload-area__preview" id="edit-event-image-preview" src="${imgSrc}" alt="Vorschau"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 80 50%27%3E%3Crect fill=%27%231a1a2e%27 width=%2780%27 height=%2750%27/%3E%3Ctext x=%2750%25%27 y=%2755%25%27 text-anchor=%27middle%27 fill=%27%237a7a8e%27 font-size=%2714%27%3E%3F%3C/text%3E%3C/svg%3E'">
+              <div class="image-upload-area__text">
+                <strong>Klicken</strong> um ein neues Bild auszuwählen
+              </div>
+            </div>
+            <input type="file" id="edit-event-image-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+            <div class="avatar-upload-status" id="edit-event-image-status"></div>
+            <div class="avatar-upload-actions">
+              <button type="button" class="btn-sm" id="edit-event-image-remove" style="color:var(--clr-danger);border-color:var(--clr-danger);">Bild entfernen</button>
+            </div>
+          </div>
+          <div class="edit-modal__footer">
+            <button type="submit" class="admin-form__submit" id="edit-event-save">Speichern</button>
+            <button type="button" class="btn-sm" id="edit-event-cancel">Abbrechen</button>
+          </div>
+        </form>
+      </div>`;
+
+    document.body.appendChild(overlay);
+    editEventImageFile = null;
+    let editRemoveEventImage = false;
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeEditEvent(); });
+    document.getElementById('edit-event-cancel').addEventListener('click', closeEditEvent);
+
+    // File select
+    document.getElementById('edit-event-image-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+      const status = document.getElementById('edit-event-image-status');
+      if (!allowed.includes(file.type)) {
+        status.textContent = 'Nur JPEG, PNG oder WebP erlaubt.';
+        status.style.color = 'var(--clr-danger)';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        status.textContent = 'Datei zu groß (max. 5 MB).';
+        status.style.color = 'var(--clr-danger)';
+        return;
+      }
+      editEventImageFile = file;
+      editRemoveEventImage = false;
+      document.getElementById('edit-event-image-preview').src = URL.createObjectURL(file);
+      status.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+      status.style.color = 'var(--clr-accent-arc)';
+    });
+
+    // Drag & drop on edit area
+    const editArea = document.getElementById('edit-event-image-area');
+    editArea.addEventListener('dragover', (e) => { e.preventDefault(); editArea.style.borderColor = 'var(--clr-accent-arc)'; });
+    editArea.addEventListener('dragleave', () => { editArea.style.borderColor = ''; });
+    editArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      editArea.style.borderColor = '';
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('edit-event-image-file').files = dt.files;
+        document.getElementById('edit-event-image-file').dispatchEvent(new Event('change'));
+      }
+    });
+
+    // Remove image
+    document.getElementById('edit-event-image-remove').addEventListener('click', () => {
+      editRemoveEventImage = true;
+      editEventImageFile = null;
+      document.getElementById('edit-event-image-preview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Crect fill='%231a1a2e' width='80' height='50'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='14'%3E%3F%3C/text%3E%3C/svg%3E";
+      document.getElementById('edit-event-image-status').textContent = 'Bild wird beim Speichern entfernt.';
+      document.getElementById('edit-event-image-status').style.color = 'var(--clr-accent-pubg)';
+    });
+
+    // Save
+    document.getElementById('edit-event-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('edit-event-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Speichern...';
+
+      try {
+        const eventId = document.getElementById('edit-event-id').value;
+        const title = document.getElementById('edit-event-title').value.trim();
+        const date = document.getElementById('edit-event-date').value;
+        const game = document.getElementById('edit-event-game').value;
+        const description = document.getElementById('edit-event-desc').value.trim();
+
+        let imageUrl = ev.image || '';
+
+        if (editEventImageFile) {
+          const uploadResult = await uploadEventImage(eventId, editEventImageFile);
+          imageUrl = uploadResult.url;
+        } else if (editRemoveEventImage) {
+          await fetch(`${EVENT_IMAGE_API}?id=${encodeURIComponent(eventId)}`, { method: 'DELETE' });
+          imageUrl = '';
+        }
+
+        const updateRes = await fetch(EVENTS_API, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: eventId, title, date, game, description, image: imageUrl }),
+        });
+        if (!updateRes.ok) {
+          const data = await updateRes.json();
+          throw new Error(data.error || `HTTP ${updateRes.status}`);
+        }
+
+        closeEditEvent();
+        await loadEvents();
+      } catch (err) {
+        alert('Fehler: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Speichern';
+      }
+    });
+  }).catch(err => alert('Fehler beim Laden: ' + err.message));
+}
+
+function closeEditEvent() {
+  const overlay = document.getElementById('edit-event-overlay');
+  if (overlay) overlay.remove();
+  editEventImageFile = null;
+}
+
+document.getElementById('events-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('events-submit');
+  btn.disabled = true;
+  btn.textContent = 'Wird gespeichert...';
+
+  const title = document.getElementById('event-title').value.trim();
+  const date = document.getElementById('event-date').value;
+  const game = document.getElementById('event-game').value;
+  const description = document.getElementById('event-desc').value.trim();
+
+  try {
+    const res = await fetch(EVENTS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, date, game, description }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    const result = await res.json();
+    const eventId = result.id;
+
+    // Upload image if selected
+    if (eventImageFile) {
+      const uploadResult = await uploadEventImage(eventId, eventImageFile);
+      // Update event with image URL
+      await fetch(EVENTS_API, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: eventId, image: uploadResult.url }),
+      });
+    }
+
+    document.getElementById('events-form').reset();
+    document.getElementById('event-image-preview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 50'%3E%3Crect fill='%231a1a2e' width='80' height='50'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237a7a8e' font-size='14'%3E%3F%3C/text%3E%3C/svg%3E";
+    document.getElementById('event-image-status').textContent = '';
+    eventImageFile = null;
+    await loadEvents();
+  } catch (err) {
+    alert('Fehler: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '+ Event erstellen';
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// VIDEOS
+// ══════════════════════════════════════════════════════════
+async function loadVideos() {
+  const body = document.getElementById('videos-list-body');
+  body.innerHTML = '<div class="loading">Lade Videos</div>';
+
+  try {
+    const res = await fetch(VIDEOS_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const videos = await res.json();
+    renderVideosAdmin(videos);
+  } catch (err) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler: ${err.message}</div></div>`;
+  }
+}
+
+function renderVideosAdmin(videos) {
+  const body = document.getElementById('videos-list-body');
+
+  if (videos.length === 0) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#127909;</div><div class="empty-state__text">Keine Videos vorhanden.</div></div>`;
+    return;
+  }
+
+  body.innerHTML = `<div class="admin-video-grid">${videos.map(v => `
+    <div class="admin-video-card">
+      <img class="admin-video-card__thumb" src="${escapeHtml(v.thumbnail)}" alt="${escapeHtml(v.title)}" loading="lazy">
+      <div class="admin-video-card__body">
+        <span class="admin-video-card__title">${escapeHtml(v.title)}</span>
+        <button class="btn-delete" onclick="deleteVideo('${v.id}')">&#10005;</button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+async function deleteVideo(id) {
+  if (!confirm('Video wirklich löschen?')) return;
+  try {
+    const res = await fetch(`${VIDEOS_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await loadVideos();
+  } catch (err) {
+    alert('Fehler beim Löschen: ' + err.message);
+  }
+}
+
+document.getElementById('videos-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('videos-submit');
+  btn.disabled = true;
+
+  const title = document.getElementById('video-title').value.trim();
+  const url = document.getElementById('video-url').value.trim();
+
+  try {
+    const res = await fetch(VIDEOS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, url }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    document.getElementById('videos-form').reset();
+    await loadVideos();
+  } catch (err) {
+    alert('Fehler: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// BANNER MANAGEMENT
+// ══════════════════════════════════════════════════════════
+let currentBannerTab = 'url';
+
+// Tab switching
+document.querySelectorAll('.banner-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentBannerTab = btn.dataset.tab;
+    document.querySelectorAll('.banner-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('banner-tab-url').style.display = currentBannerTab === 'url' ? '' : 'none';
+    document.getElementById('banner-tab-upload').style.display = currentBannerTab === 'upload' ? '' : 'none';
+  });
+});
+
+async function loadBannerSettings() {
+  const body = document.getElementById('banner-preview-body');
+  body.innerHTML = '<div class="loading">Lade Banner</div>';
+
+  try {
+    const res = await fetch(SETTINGS_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const settings = await res.json();
+
+    if (settings.bannerUrl) {
+      // Add cache-buster for uploaded images
+      const imgUrl = settings.bannerUrl === '/api/banner-image'
+        ? settings.bannerUrl + '?t=' + Date.now()
+        : settings.bannerUrl;
+
+      body.innerHTML = `
+        <div class="banner-preview-container">
+          <span class="banner-preview-label">1920 &times; 600</span>
+          <img src="${escapeHtml(imgUrl)}" alt="Header Banner" onerror="this.parentElement.innerHTML='<div class=\\'empty-state\\'><div class=\\'empty-state__icon\\'>&#9888;</div><div class=\\'empty-state__text\\'>Bild konnte nicht geladen werden.</div></div>'">
+        </div>
+        <p style="font-family:var(--ff-mono);font-size:.75rem;color:var(--clr-text-muted);margin-top:.75rem;">
+          Quelle: ${escapeHtml(settings.bannerUrl)}
+        </p>`;
+
+      // Pre-fill URL input if it's a URL type
+      if (settings.bannerUrl !== '/api/banner-image') {
+        document.getElementById('banner-url').value = settings.bannerUrl;
+      }
+    } else {
+      body.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state__icon">&#128444;</div>
+          <div class="empty-state__text">Kein Banner konfiguriert. Verwende das Formular oben, um ein Banner hinzuzuf&uuml;gen.</div>
+        </div>`;
+    }
+  } catch (err) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler: ${err.message}</div></div>`;
+  }
+}
+
+document.getElementById('banner-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('banner-submit');
+  btn.disabled = true;
+
+  try {
+    let bannerUrl = '';
+
+    if (currentBannerTab === 'url') {
+      bannerUrl = document.getElementById('banner-url').value.trim();
+      if (!bannerUrl) {
+        alert('Bitte eine Bild-URL eingeben.');
+        btn.disabled = false;
+        return;
+      }
+    } else {
+      // File upload
+      const fileInput = document.getElementById('banner-file');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Bitte eine Datei ausw\u00e4hlen.');
+        btn.disabled = false;
+        return;
+      }
+
+      const statusEl = document.getElementById('banner-upload-status');
+      statusEl.textContent = 'Lade hoch...';
+      statusEl.style.color = 'var(--clr-accent-arc)';
+
+      const uploadRes = await fetch(BANNER_IMAGE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json();
+        throw new Error(data.error || `Upload fehlgeschlagen (HTTP ${uploadRes.status})`);
+      }
+
+      const uploadData = await uploadRes.json();
+      bannerUrl = uploadData.url;
+      statusEl.textContent = 'Upload erfolgreich!';
+    }
+
+    // Save to settings
+    const res = await fetch(SETTINGS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bannerUrl }),
+    });
+
+    if (!res.ok) throw new Error('Speichern fehlgeschlagen');
+
+    await loadBannerSettings();
+    alert('Banner erfolgreich gespeichert! Die \u00c4nderung ist sofort auf der Startseite sichtbar.');
+  } catch (err) {
+    alert('Fehler: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('banner-remove').addEventListener('click', async () => {
+  if (!confirm('Banner wirklich entfernen?')) return;
+
+  try {
+    const res = await fetch(SETTINGS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bannerUrl: '' }),
+    });
+
+    if (!res.ok) throw new Error('Fehler beim Entfernen');
+    document.getElementById('banner-url').value = '';
+    document.getElementById('banner-file').value = '';
+    await loadBannerSettings();
+    alert('Banner wurde entfernt.');
+  } catch (err) {
+    alert('Fehler: ' + err.message);
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// EVENT-ANMELDUNGEN (Event Registrations)
+// ══════════════════════════════════════════════════════════
+let currentEventRegistrations = [];
+let currentEvtModalId = null;
+
+async function loadEventRegistrations() {
+  const body = document.getElementById('evt-registrations-body');
+  body.innerHTML = '<div class="loading">Lade Event-Anmeldungen</div>';
+
+  try {
+    const res = await fetch(EVT_REGISTRATIONS_API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    currentEventRegistrations = await res.json();
+    renderEventRegistrations();
+    updateEvtStats();
+  } catch (err) {
+    console.error('[Admin-EvtReg]', err);
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler beim Laden: ${err.message}</div></div>`;
+  }
+}
+
+function renderEventRegistrations() {
+  const body = document.getElementById('evt-registrations-body');
+
+  if (currentEventRegistrations.length === 0) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">&#128203;</div>
+        <div class="empty-state__text">Noch keine Event-Anmeldungen eingegangen.</div>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <table class="app-table">
+      <thead>
+        <tr>
+          <th>Name / Gaming-ID</th>
+          <th>Spiel</th>
+          <th>Clan</th>
+          <th>Spieler</th>
+          <th>Bemerkungen</th>
+          <th>Datum</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${currentEventRegistrations.map(reg => `
+          <tr>
+            <td><strong>${escapeHtml(reg.name)}</strong></td>
+            <td>${getGameTag(reg.spiel)}</td>
+            <td>${escapeHtml(reg.clan || '–')}</td>
+            <td>${escapeHtml(reg.spielerAnzahl || '–')}</td>
+            <td class="app-about">${escapeHtml(truncate(reg.bemerkungen || '', 60))}</td>
+            <td class="app-date">${formatDate(reg.createdAt)}</td>
+            <td>
+              <button class="btn-sm" onclick="showEvtDetail('${reg.id}')">Details</button>
+              <button class="btn-delete" onclick="deleteEventRegistration('${reg.id}')">L\u00f6schen</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+function updateEvtStats() {
+  document.getElementById('stat-evt-total').textContent = currentEventRegistrations.length;
+  document.getElementById('stat-evt-pubg').textContent = currentEventRegistrations.filter(r => r.spiel === 'PUBG').length;
+  document.getElementById('stat-evt-arc').textContent = currentEventRegistrations.filter(r => r.spiel === 'ARC Raiders').length;
+}
+
+function showEvtDetail(id) {
+  const reg = currentEventRegistrations.find(r => r.id === id);
+  if (!reg) return;
+  currentEvtModalId = id;
+  currentModalId = null;
+
+  document.getElementById('modal-title').textContent = `Event-Anmeldung: ${reg.name}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal__field">
+      <div class="modal__label">Name / Gaming-ID</div>
+      <div class="modal__value">${escapeHtml(reg.name)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">E-Mail</div>
+      <div class="modal__value">${escapeHtml(reg.email)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Spiel</div>
+      <div class="modal__value">${escapeHtml(reg.spiel)}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Clan-Name</div>
+      <div class="modal__value">${escapeHtml(reg.clan || '–')}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Anzahl Spieler</div>
+      <div class="modal__value">${escapeHtml(reg.spielerAnzahl || '–')}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Bemerkungen</div>
+      <div class="modal__value" style="white-space:pre-wrap;">${escapeHtml(reg.bemerkungen || '–')}</div>
+    </div>
+    <div class="modal__field">
+      <div class="modal__label">Eingegangen am</div>
+      <div class="modal__value">${formatDate(reg.createdAt)}</div>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+async function deleteEventRegistration(id) {
+  if (!confirm('Event-Anmeldung wirklich l\u00f6schen?')) return;
+
+  try {
+    const res = await fetch(`${EVT_REGISTRATIONS_API}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    closeModal();
+    await loadEventRegistrations();
+  } catch (err) {
+    alert('Fehler beim L\u00f6schen: ' + err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function truncate(str, max) {
+  if (!str) return '';
+  return str.length > max ? str.slice(0, max) + '\u2026' : str;
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ══════════════════════════════════════════════════════════
+document.getElementById('btn-refresh').addEventListener('click', loadApplications);
+document.getElementById('btn-refresh-roster').addEventListener('click', loadRoster);
+document.getElementById('btn-refresh-events').addEventListener('click', loadEvents);
+document.getElementById('btn-refresh-videos').addEventListener('click', loadVideos);
+document.getElementById('btn-refresh-banner').addEventListener('click', loadBannerSettings);
+document.getElementById('btn-refresh-evt-registrations').addEventListener('click', loadEventRegistrations);
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+document.getElementById('modal-delete').addEventListener('click', () => {
+  if (currentEvtModalId) deleteEventRegistration(currentEvtModalId);
+  else if (currentModalId) deleteApplication(currentModalId);
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ══════════════════════════════════════════════════════════
+// TWITCH STATUS CHECK (Admin Visibility)
+// ══════════════════════════════════════════════════════════
+async function checkTwitchStatus() {
+  const banner = document.getElementById('twitch-admin-banner');
+  const dot = document.getElementById('twitch-admin-dot');
+  const label = document.getElementById('twitch-admin-label');
+  const detail = document.getElementById('twitch-admin-detail');
+  const errorBox = document.getElementById('twitch-admin-error');
+  if (!banner) return;
+
+  try {
+    const res = await fetch('/api/twitch-status');
+    const data = await res.json();
+    banner.style.display = 'block';
+
+    if (data.error) {
+      // Show error state
+      dot.style.background = '#ff3b5c';
+      dot.style.boxShadow = '0 0 6px #ff3b5c';
+      label.textContent = 'Twitch API Fehler';
+      label.style.color = '#ff3b5c';
+
+      let errorMsg = data.error;
+      if (data.errorType === 'CONFIG_MISSING') {
+        errorMsg = 'Umgebungsvariablen fehlen: ' + data.error;
+      } else if (data.errorType === 'TOKEN_ERROR') {
+        errorMsg = 'Token-Fehler (Client-ID oder Secret ungültig/blockiert): ' + data.error;
+      } else {
+        errorMsg = 'API-Fehler: ' + data.error;
+      }
+      if (data.timestamp) errorMsg += ' (Zeitpunkt: ' + data.timestamp + ')';
+
+      detail.textContent = '(HTTP ' + res.status + ')';
+      errorBox.style.display = 'block';
+      errorBox.textContent = errorMsg;
+      banner.style.borderColor = 'rgba(255,59,92,.35)';
+    } else if (data.live) {
+      dot.style.background = '#0FF2A9';
+      dot.style.boxShadow = '0 0 6px #0FF2A9';
+      label.textContent = 'Twitch: LIVE';
+      label.style.color = '#0FF2A9';
+      detail.textContent = data.viewer_count + ' Zuschauer – ' + (data.game_name || 'Unbekannt');
+      errorBox.style.display = 'none';
+      banner.style.borderColor = 'rgba(15,242,169,.25)';
+    } else {
+      dot.style.background = 'var(--clr-text-muted)';
+      dot.style.boxShadow = 'none';
+      label.textContent = 'Twitch: OFFLINE';
+      label.style.color = 'var(--clr-text-muted)';
+      detail.textContent = 'Kanal ist derzeit nicht live.';
+      errorBox.style.display = 'none';
+      banner.style.borderColor = 'var(--clr-border)';
+    }
+  } catch (err) {
+    banner.style.display = 'block';
+    dot.style.background = '#ff3b5c';
+    label.textContent = 'Twitch Status';
+    label.style.color = '#ff3b5c';
+    detail.textContent = '';
+    errorBox.style.display = 'block';
+    errorBox.textContent = 'Verbindung zur Twitch-API fehlgeschlagen: ' + err.message;
+    banner.style.borderColor = 'rgba(255,59,92,.35)';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+loadApplications();
+checkTwitchStatus();
+setInterval(checkTwitchStatus, 60000);
+</script>
+
+</body>
+</html>

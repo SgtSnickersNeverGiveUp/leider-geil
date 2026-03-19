@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Leider Geil – Event-Anmeldung. Melde dich für das nächste Clan-Event an!">
+  <title>Event-Anmeldung – Leider Geil</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" role="navigation" aria-label="Hauptnavigation">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__logo">Leider&nbsp;Geil</a>
+
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="navbar__links" id="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#roster">Roster</a></li>
+        <li><a href="/event-anmeldung">Event-Anmeldung</a></li>
+        <li><a href="/#videos">Videos</a></li>
+        <li><a href="/bewerben">Bewerben</a></li>
+        <li><a href="https://discord.gg/dCxDZnMXbu" target="_blank" rel="noopener">Discord</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- EVENT-ANMELDUNG -->
+  <section class="section" id="event-anmeldung">
+    <div class="container">
+      <h2 class="section__title section__title--pubg">Event-Anmeldung</h2>
+
+      <div class="terminal">
+        <div class="terminal__header">
+          <span class="terminal__dot terminal__dot--red"></span>
+          <span class="terminal__dot terminal__dot--yellow"></span>
+          <span class="terminal__dot terminal__dot--green"></span>
+          <span class="terminal__title">event-anmeldung.sh</span>
+        </div>
+
+        <div class="terminal__body">
+          <p class="terminal__prompt">root@leider-geil:~$ ./event --register</p>
+          <p class="terminal__output">[SYSTEM] Event-Anmeldung aktiv. Fülle alle Felder aus, Soldat.</p>
+          <form id="event-form" name="Event-Anmeldung" method="POST" data-netlify="true" autocomplete="off">
+            <input type="hidden" name="form-name" value="Event-Anmeldung">
+
+            <div class="form-group">
+              <label for="e-name">Name / Gaming-ID</label>
+              <input type="text" id="e-name" name="name-gaming-id" required placeholder="Dein Name oder Gaming-ID">
+            </div>
+
+            <div class="form-group">
+              <label for="e-email">E-Mail</label>
+              <input type="email" id="e-email" name="email" required placeholder="Deine E-Mail-Adresse">
+            </div>
+
+            <div class="form-group">
+              <label for="e-game">Spiel auswählen</label>
+              <select id="e-game" name="spiel" required>
+                <option value="" disabled selected>-- Spiel wählen --</option>
+                <option value="PUBG">PUBG</option>
+                <option value="ARC Raiders">ARC Raiders</option>
+                <option value="Sonstiges">Sonstiges</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="e-clan">Clan-Name</label>
+              <input type="text" id="e-clan" name="clan-name" required placeholder="Dein Clan-Name">
+            </div>
+
+            <div class="form-group">
+              <label for="e-players">Anzahl der Spieler</label>
+              <select id="e-players" name="anzahl-spieler" required>
+                <option value="" disabled selected>-- Anzahl wählen --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4+">4+</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="e-notes">Bemerkungen</label>
+              <textarea id="e-notes" name="bemerkungen" placeholder="Zusätzliche Infos, bevorzugte Zeiten …"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-submit">
+              <span class="btn-submit__icon">&gt;_</span> Anmeldung senden
+            </button>
+          </form>
+          <p class="terminal__status terminal__status--success" id="event-form-success">Anmeldung erfolgreich – wir sehen uns auf dem Schlachtfeld!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <ul class="footer__links">
+      <li><a href="https://discord.gg/dCxDZnMXbu" target="_blank" rel="noopener">Discord</a></li>
+      <li><a href="https://www.twitch.tv/sgtsnickersnevergiveup" target="_blank" rel="noopener">Twitch</a></li>
+      <li><a href="/#roster">Roster</a></li>
+      <li><a href="/event-anmeldung">Event-Anmeldung</a></li>
+      <li><a href="/#videos">Videos</a></li>
+      <li><a href="/bewerben">Bewerben</a></li>
+    </ul>
+    <p class="footer__copy">&copy; 2025 Leider Geil &mdash; All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
