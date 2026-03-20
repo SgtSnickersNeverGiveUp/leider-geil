@@ -2749,72 +2749,25 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) closeModal();
 });
 
-// ══════════════════════════════════════════════════════════
-// TWITCH STATUS CHECK (Admin Visibility)
-// ══════════════════════════════════════════════════════════
+// TWITCH STATUS CHECK (TEMPORÄR UMGEHEND – Admin Dashboard Fix)
 async function checkTwitchStatus() {
   const banner = document.getElementById('twitch-admin-banner');
-  const dot = document.getElementById('twitch-admin-dot');
-  const label = document.getElementById('twitch-admin-label');
-  const detail = document.getElementById('twitch-admin-detail');
-  const errorBox = document.getElementById('twitch-admin-error');
   if (!banner) return;
-
-  try {
-    const res = await fetch('/api/twitch-status');
-    const data = await res.json();
-    banner.style.display = 'block';
-
-    if (data.error) {
-      // Show error state
-      dot.style.background = '#ff3b5c';
-      dot.style.boxShadow = '0 0 6px #ff3b5c';
-      label.textContent = 'Twitch API Fehler';
-      label.style.color = '#ff3b5c';
-
-      let errorMsg = data.error;
-      if (data.errorType === 'CONFIG_MISSING') {
-        errorMsg = 'Umgebungsvariablen fehlen: ' + data.error;
-      } else if (data.errorType === 'TOKEN_ERROR') {
-        errorMsg = 'Token-Fehler (Client-ID oder Secret ungültig/blockiert): ' + data.error;
-      } else {
-        errorMsg = 'API-Fehler: ' + data.error;
-      }
-      if (data.timestamp) errorMsg += ' (Zeitpunkt: ' + data.timestamp + ')';
-
-      detail.textContent = '(HTTP ' + res.status + ')';
-      errorBox.style.display = 'block';
-      errorBox.textContent = errorMsg;
-      banner.style.borderColor = 'rgba(255,59,92,.35)';
-    } else if (data.live) {
-      dot.style.background = '#0FF2A9';
-      dot.style.boxShadow = '0 0 6px #0FF2A9';
-      label.textContent = 'Twitch: LIVE';
-      label.style.color = '#0FF2A9';
-      detail.textContent = data.viewer_count + ' Zuschauer – ' + (data.game_name || 'Unbekannt');
-      errorBox.style.display = 'none';
-      banner.style.borderColor = 'rgba(15,242,169,.25)';
-    } else {
-      dot.style.background = 'var(--clr-text-muted)';
-      dot.style.boxShadow = 'none';
-      label.textContent = 'Twitch: OFFLINE';
-      label.style.color = 'var(--clr-text-muted)';
-      detail.textContent = 'Kanal ist derzeit nicht live.';
-      errorBox.style.display = 'none';
-      banner.style.borderColor = 'var(--clr-border)';
-    }
-  } catch (err) {
-    banner.style.display = 'block';
-    dot.style.background = '#ff3b5c';
-    label.textContent = 'Twitch Status';
-    label.style.color = '#ff3b5c';
-    detail.textContent = '';
-    errorBox.style.display = 'block';
-    errorBox.textContent = 'Verbindung zur Twitch-API fehlgeschlagen: ' + err.message;
-    banner.style.borderColor = 'rgba(255,59,92,.35)';
-  }
+  
+  // Banner verstecken + neutrale Nachricht (Twitch später fixen)
+  banner.style.display = 'block';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <span style="width:10px;height:10px;border-radius:50%;background:var(--clr-text-muted);"></span>
+      <strong style="font-family:var(--ff-heading);font-size:.95rem;color:var(--clr-text-muted);">Twitch</strong>
+      <span style="color:var(--clr-text-muted);font-size:.8rem;">Konfiguration ausstehend</span>
+    </div>
+  `;
+  
+  // Dashboard trotzdem laden!
+  console.log('✅ Twitch umgangen – lade Bewerbungen...');
+  loadApplications();  // ← WICHTIG: Direkt Bewerbungen laden
 }
-
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
