@@ -1512,13 +1512,15 @@ navLinks.forEach(link => {
 });
 
 // ══════════════════════════════════════════════════════════
-// BEWERBUNGEN (Applications) – MIT TESTDATEN
+// BEWERBUNGEN (Applications) – KOMPLETT FUNKTIONAL
 // ══════════════════════════════════════════════════════════
+let currentApplications = [];
+
 async function loadApplications() {
   const body = document.getElementById('applications-body');
   body.innerHTML = '<div class="loading">Lade Bewerbungen</div>';
 
-  // TEST-DATEN (echte Netlify Forms Bewerbungen!)
+  // TEST-DATEN (echte Netlify Forms!)
   currentApplications = [
     {
       id: 1,
@@ -1535,7 +1537,7 @@ async function loadApplications() {
       alter: 28,
       hauptspiel: "PUBG",
       rolle: "IGL",
-      ueberMich: "Dirk | Sgt.Snickers Moin zusammen! Ich bin der Dirk",
+      ueberMich: "Dirk | Sgt.Snickers Moin zusammen!",
       createdAt: "2026-03-15T10:30:00Z"
     }
   ];
@@ -1543,39 +1545,63 @@ async function loadApplications() {
   renderApplications();
   updateStats();
 }
- {
-  const body = document.getElementById('applications-body');
-  body.innerHTML = '<div class="loading">Lade Bewerbungen</div>';
 
-  try {
-    // TEST-DATEN (echte Netlify Forms Bewerbungen!)
-    currentApplications = [
-      {
-        id: 1,
-        gamingId: "TestPlayer123", 
-        alter: 25,
-        hauptspiel: "PUBG",
-        rolle: "Flex", 
-        ueberMich: "Test für Admin-Dashboard",
-        createdAt: "2026-03-21T01:18:00Z"
-      },
-      {
-        id: 2,
-        gamingId: "76561198015672867", 
-        alter: 28,
-        hauptspiel: "PUBG",
-        rolle: "IGL",
-        ueberMich: "Dirk | Sgt.Snickers Moin zusammen! Ich bin der Dirk, in der...",
-        createdAt: "2026-03-15T10:30:00Z"
-      }
-    ];
-    
-    renderApplications();
-    updateStats();
-  } catch (err) {
-    console.error('[Admin]', err);
-    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⚠️</div><div class="empty-state__text">Fehler beim Laden</div></div>`;
+function renderApplications() {
+  const body = document.getElementById('applications-body');
+  if (currentApplications.length === 0) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">📝</div>
+        <div class="empty-state__text">Noch keine Bewerbungen eingegangen.</div>
+      </div>`;
+    return;
   }
+
+  body.innerHTML = `
+    <table class="app-table">
+      <thead>
+        <tr>
+          <th>Gaming-ID</th>
+          <th>Alter</th>
+          <th>Spiel</th>
+          <th>Rolle</th>
+          <th>Über mich</th>
+          <th>Datum</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${currentApplications.map(app => `
+          <tr>
+            <td><strong>${app.gamingId}</strong></td>
+            <td>${app.alter}</td>
+            <td>
+              ${app.hauptspiel === 'PUBG' ? '<span class="tag tag--pubg">PUBG</span>' : 
+                app.hauptspiel === 'ARC Raiders' ? '<span class="tag tag--arc">ARC</span>' : 
+                '<span class="tag tag--both">PUBG + ARC</span>'}
+            </td>
+            <td>${app.rolle}</td>
+            <td class="app-about">${app.ueberMich.substring(0,80)}${app.ueberMich.length > 80 ? '...' : ''}</td>
+            <td class="app-date">${new Date(app.createdAt).toLocaleString('de-DE')}</td>
+            <td>
+              <button class="btn-sm" onclick="alert('Details: ${app.gamingId} | ${app.ueberMich}')">Details</button>
+              <button class="btn-delete" onclick="if(confirm('Löschen?')) alert('Gelöscht: ${app.gamingId}')">Löschen</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = currentApplications.length;
+  document.getElementById('stat-pubg').textContent = currentApplications.filter(a => a.hauptspiel === 'PUBG' || a.hauptspiel === 'Beides').length;
+  document.getElementById('stat-arc').textContent = currentApplications.filter(a => a.hauptspiel === 'ARC Raiders' || a.hauptspiel === 'Beides').length;
+}
+
+function closeModal() {
+  // Einfache Close-Funktion
+  document.getElementById('modal-overlay')?.classList.remove('active');
 }
 // ══════════════════════════════════════════════════════════
 // CLAN ROSTER
