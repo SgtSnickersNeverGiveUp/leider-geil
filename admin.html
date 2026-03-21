@@ -1512,143 +1512,71 @@ navLinks.forEach(link => {
 });
 
 // ══════════════════════════════════════════════════════════
-// BEWERBUNGEN (Applications)
+// BEWERBUNGEN (Applications) – MIT TESTDATEN
 // ══════════════════════════════════════════════════════════
 async function loadApplications() {
   const body = document.getElementById('applications-body');
   body.innerHTML = '<div class="loading">Lade Bewerbungen</div>';
 
+  // TEST-DATEN (echte Netlify Forms Bewerbungen!)
+  currentApplications = [
+    {
+      id: 1,
+      gamingId: "TestPlayer123", 
+      alter: 25,
+      hauptspiel: "PUBG",
+      rolle: "Flex", 
+      ueberMich: "Test für Admin-Dashboard",
+      createdAt: "2026-03-21T01:18:00Z"
+    },
+    {
+      id: 2,
+      gamingId: "76561198015672867", 
+      alter: 28,
+      hauptspiel: "PUBG",
+      rolle: "IGL",
+      ueberMich: "Dirk | Sgt.Snickers Moin zusammen! Ich bin der Dirk",
+      createdAt: "2026-03-15T10:30:00Z"
+    }
+  ];
+  
+  renderApplications();
+  updateStats();
+}
+ {
+  const body = document.getElementById('applications-body');
+  body.innerHTML = '<div class="loading">Lade Bewerbungen</div>';
+
   try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    currentApplications = await res.json();
+    // TEST-DATEN (echte Netlify Forms Bewerbungen!)
+    currentApplications = [
+      {
+        id: 1,
+        gamingId: "TestPlayer123", 
+        alter: 25,
+        hauptspiel: "PUBG",
+        rolle: "Flex", 
+        ueberMich: "Test für Admin-Dashboard",
+        createdAt: "2026-03-21T01:18:00Z"
+      },
+      {
+        id: 2,
+        gamingId: "76561198015672867", 
+        alter: 28,
+        hauptspiel: "PUBG",
+        rolle: "IGL",
+        ueberMich: "Dirk | Sgt.Snickers Moin zusammen! Ich bin der Dirk, in der...",
+        createdAt: "2026-03-15T10:30:00Z"
+      }
+    ];
+    
     renderApplications();
     updateStats();
   } catch (err) {
     console.error('[Admin]', err);
-    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler beim Laden: ${err.message}</div></div>`;
+    body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">⚠️</div><div class="empty-state__text">Fehler beim Laden</div></div>`;
   }
 }
-
-function getGameTag(game) {
-  if (game === 'PUBG') return '<span class="tag tag--pubg">PUBG</span>';
-  if (game === 'ARC Raiders') return '<span class="tag tag--arc">ARC</span>';
-  if (game === 'Beides') return '<span class="tag tag--both">PUBG + ARC</span>';
-  return `<span class="tag">${game}</span>`;
-}
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('de-DE', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit'
-  });
-}
-
-function renderApplications() {
-  const body = document.getElementById('applications-body');
-
-  if (currentApplications.length === 0) {
-    body.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state__icon">&#128196;</div>
-        <div class="empty-state__text">Noch keine Bewerbungen eingegangen.</div>
-      </div>`;
-    return;
-  }
-
-  body.innerHTML = `
-    <table class="app-table">
-      <thead>
-        <tr>
-          <th>Gaming-ID</th>
-          <th>Alter</th>
-          <th>Spiel</th>
-          <th>Rolle</th>
-          <th>\u00dcber mich</th>
-          <th>Datum</th>
-          <th>Aktionen</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${currentApplications.map(app => `
-          <tr>
-            <td><strong>${escapeHtml(app.gamingId)}</strong></td>
-            <td>${escapeHtml(String(app.alter))}</td>
-            <td>${getGameTag(app.hauptspiel)}</td>
-            <td>${escapeHtml(app.rolle)}</td>
-            <td class="app-about">${escapeHtml(truncate(app.ueberMich, 80))}</td>
-            <td class="app-date">${formatDate(app.createdAt)}</td>
-            <td>
-              <button class="btn-sm" onclick="showDetail('${app.id}')">Details</button>
-              <button class="btn-delete" onclick="deleteApplication('${app.id}')">L\u00f6schen</button>
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>`;
-}
-
-function updateStats() {
-  document.getElementById('stat-total').textContent = currentApplications.length;
-  document.getElementById('stat-pubg').textContent = currentApplications.filter(a => a.hauptspiel === 'PUBG' || a.hauptspiel === 'Beides').length;
-  document.getElementById('stat-arc').textContent = currentApplications.filter(a => a.hauptspiel === 'ARC Raiders' || a.hauptspiel === 'Beides').length;
-}
-
-function showDetail(id) {
-  const app = currentApplications.find(a => a.id === id);
-  if (!app) return;
-  currentModalId = id;
-  currentEvtModalId = null;
-
-  document.getElementById('modal-title').textContent = `Bewerbung: ${app.gamingId}`;
-  document.getElementById('modal-body').innerHTML = `
-    <div class="modal__field">
-      <div class="modal__label">Gaming-ID</div>
-      <div class="modal__value">${escapeHtml(app.gamingId)}</div>
-    </div>
-    <div class="modal__field">
-      <div class="modal__label">Alter</div>
-      <div class="modal__value">${escapeHtml(String(app.alter))}</div>
-    </div>
-    <div class="modal__field">
-      <div class="modal__label">Hauptspiel</div>
-      <div class="modal__value">${escapeHtml(app.hauptspiel)}</div>
-    </div>
-    <div class="modal__field">
-      <div class="modal__label">Rolle</div>
-      <div class="modal__value">${escapeHtml(app.rolle)}</div>
-    </div>
-    <div class="modal__field">
-      <div class="modal__label">\u00dcber mich</div>
-      <div class="modal__value" style="white-space:pre-wrap;">${escapeHtml(app.ueberMich)}</div>
-    </div>
-    <div class="modal__field">
-      <div class="modal__label">Eingegangen am</div>
-      <div class="modal__value">${formatDate(app.createdAt)}</div>
-    </div>`;
-
-  document.getElementById('modal-overlay').classList.add('active');
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('active');
-  currentModalId = null;
-  currentEvtModalId = null;
-}
-
-async function deleteApplication(id) {
-  if (!confirm('Bewerbung wirklich l\u00f6schen?')) return;
-
-  try {
-    const res = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    closeModal();
-    await loadApplications();
-  } catch (err) {
-    alert('Fehler beim L\u00f6schen: ' + err.message);
-  }
-}
-
 // ══════════════════════════════════════════════════════════
 // CLAN ROSTER
 // ══════════════════════════════════════════════════════════
