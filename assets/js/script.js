@@ -100,6 +100,7 @@ async function renderRoster() {
       const avatarSrc = m.avatar
         ? m.avatar + (m.avatar.startsWith('/api/roster-avatar') ? (m.avatar.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 60000) : '')
         : `https://via.placeholder.com/160/1a1a2e/0FF2A9?text=${encodeURIComponent((m.name || '??').slice(0, 2).toUpperCase())}`;
+
       return `
       <article class="roster-card">
         <img class="roster-card__avatar"
@@ -115,6 +116,7 @@ async function renderRoster() {
             return `<span class="roster-card__tag roster-card__tag--${cls}">${g}</span>`;
           }).join('')}
         </div>
+        ${m.bio ? `<p class="roster-card__bio">${m.bio}</p>` : ''}
       </article>`;
     }).join('');
   } catch (err) {
