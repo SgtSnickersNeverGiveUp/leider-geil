@@ -114,8 +114,10 @@ async function renderRoster() {
             const cls = g === 'PUBG' ? 'pubg' : g === 'ARC Raiders' ? 'arc' : 'other';
             return `<span class="roster-card__tag roster-card__tag--${cls}">${g}</span>`;
           }).join('')}
-        </div>
-      </article>`;
+        </div>        
+        ${m.bio ? `<p class="roster-card__bio">${m.bio}</p>` : ''}
+
+     </article>`;
     }).join('');
   } catch (err) {
     console.error('[Roster]', err);
