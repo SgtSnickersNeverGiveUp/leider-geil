@@ -196,28 +196,28 @@ function observeTimeline() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   6. Header Banner (from Admin Settings)
+   News-Ticker (Text aus Admin Settings)
    ══════════════════════════════════════════════════════════ */
-async function renderHeaderBanner() {
-  const section = $('#header-banner');
-  const img = $('#header-banner-img');
-  if (!section || !img) return;
+async function renderNewsTicker() {
+  const textEl = document.querySelector('#news-ticker-text');
+  const section = document.querySelector('#news-ticker');
+  if (!textEl || !section) return;
 
   try {
     const res = await fetch('/api/settings');
-    if (!res.ok) return;
+    if (!res.ok) throw new Error('Settings API ' + res.status);
     const settings = await res.json();
 
-    if (settings.bannerUrl) {
-      const imgUrl = settings.bannerUrl === '/api/banner-image'
-        ? settings.bannerUrl + '?t=' + Math.floor(Date.now() / 60000)
-        : settings.bannerUrl;
-      img.src = imgUrl;
-      img.onload = () => { section.style.display = ''; };
-      img.onerror = () => { section.style.display = 'none'; };
+    const text = settings.newsTickerText || '';
+    if (!text.trim()) {
+      section.style.display = 'none';
+      return;
     }
+
+    textEl.textContent = text;
   } catch (err) {
-    console.warn('[Banner]', err.message);
+    console.warn('[NewsTicker]', err.message);
+    section.style.display = 'none';
   }
 }
 
@@ -383,9 +383,11 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   renderVideoGallery();
   renderHeaderBanner();
+  renderNewsTicker(); // <--- neu
 
   // Live-Status: sofort + Intervall
   fetchDiscordStatus();
   fetchTwitchStatus();
   startLiveUpdates();
 });
+
