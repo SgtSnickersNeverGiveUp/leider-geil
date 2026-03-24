@@ -1366,7 +1366,7 @@
             Empfohlene Aufl&ouml;sung: <strong style="color:var(--clr-accent-arc);">1920 &times; 600 px</strong>. Das Bild wird als Header-Banner auf der Startseite angezeigt.
           </p>
 
-          <form class="admin-form" id="banner-form" style="max-width:600px;">
+                    <form class="admin-form" id="banner-form" style="max-width:600px;">
             <!-- Tab selection -->
             <div style="display:flex;gap:.5rem;margin-bottom:1rem;">
               <button type="button" class="btn-sm btn-sm--accent banner-tab-btn active" data-tab="url">Bild-URL</button>
@@ -1386,27 +1386,19 @@
               <div id="banner-upload-status" style="font-family:var(--ff-mono);font-size:.75rem;color:var(--clr-text-muted);margin-top:.25rem;"></div>
             </div>
 
+            <!-- News-Ticker Text -->
+            <div class="admin-form__group">
+              <label class="admin-form__label" for="news-ticker-text-input">News Ticker Text</label>
+              <textarea class="admin-form__input" id="news-ticker-text-input" rows="2" placeholder="z.B. Scrims am Freitag 20:00 Uhr – Anmeldung über den Event-Channel auf Discord."></textarea>
+              <p style="font-family:var(--ff-mono);font-size:.75rem;color:var(--clr-text-muted);margin-top:.25rem;">
+                Wird als laufende News-Leiste über dem Willkommen-Block angezeigt.
+              </p>
+            </div>
+
             <button type="submit" class="admin-form__submit" id="banner-submit">Banner speichern</button>
             <button type="button" class="btn-sm btn-sm--danger" id="banner-remove" style="margin-top:.5rem;">Banner entfernen</button>
           </form>
-        </div>
-      </section>
 
-      <section class="panel">
-        <div class="panel__header">
-          <h2 class="panel__title">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-            Vorschau
-          </h2>
-          <div class="panel__actions">
-            <button class="btn-sm" id="btn-refresh-banner">Aktualisieren</button>
-          </div>
-        </div>
-        <div class="panel__body" id="banner-preview-body">
-          <div class="loading">Lade Banner</div>
-        </div>
-      </section>
-    </div>
 
     <!-- ═══════════════════════════════════════════════════════
          PAGE: EVENT-ANMELDUNGEN
