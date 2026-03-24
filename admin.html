@@ -2398,7 +2398,7 @@ document.getElementById('videos-form').addEventListener('submit', async (e) => {
 });
 
 // ══════════════════════════════════════════════════════════
-// BANNER MANAGEMENT
+// BANNER MANAGEMENT + NEWS TICKER
 // ══════════════════════════════════════════════════════════
 let currentBannerTab = 'url';
 
@@ -2422,6 +2422,7 @@ async function loadBannerSettings() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const settings = await res.json();
 
+    // Banner-Vorschau
     if (settings.bannerUrl) {
       // Add cache-buster for uploaded images
       const imgUrl = settings.bannerUrl === '/api/banner-image'
@@ -2431,7 +2432,7 @@ async function loadBannerSettings() {
       body.innerHTML = `
         <div class="banner-preview-container">
           <span class="banner-preview-label">1920 &times; 600</span>
-          <img src="${escapeHtml(imgUrl)}" alt="Header Banner" onerror="this.parentElement.innerHTML='<div class=\\'empty-state\\'><div class=\\'empty-state__icon\\'>&#9888;</div><div class=\\'empty-state__text\\'>Bild konnte nicht geladen werden.</div></div>'">
+          <img src="${escapeHtml(imgUrl)}" alt="Header Banner" onerror="this.parentElement.innerHTML='<div class=\\\\'empty-state\\\\'><div class=\\\\'empty-state__icon\\\\'>&#9888;</div><div class=\\\\'empty-state__text\\\\'>Bild konnte nicht geladen werden.</div></div>'">
         </div>
         <p style="font-family:var(--ff-mono);font-size:.75rem;color:var(--clr-text-muted);margin-top:.75rem;">
           Quelle: ${escapeHtml(settings.bannerUrl)}
@@ -2447,6 +2448,12 @@ async function loadBannerSettings() {
           <div class="empty-state__icon">&#128444;</div>
           <div class="empty-state__text">Kein Banner konfiguriert. Verwende das Formular oben, um ein Banner hinzuzuf&uuml;gen.</div>
         </div>`;
+    }
+
+    // News-Ticker Text vorbelegen
+    const newsTickerTextInput = document.getElementById('news-ticker-text-input');
+    if (newsTickerTextInput) {
+      newsTickerTextInput.value = settings.newsTickerText || '';
     }
   } catch (err) {
     body.innerHTML = `<div class="empty-state"><div class="empty-state__icon">&#9888;</div><div class="empty-state__text">Fehler: ${err.message}</div></div>`;
@@ -2498,17 +2505,24 @@ document.getElementById('banner-form').addEventListener('submit', async (e) => {
       statusEl.textContent = 'Upload erfolgreich!';
     }
 
-    // Save to settings
+    // News-Ticker Text einsammeln
+    const newsTickerTextInput = document.getElementById('news-ticker-text-input');
+    const newsTickerText = newsTickerTextInput ? newsTickerTextInput.value.trim() : '';
+
+    // Save to settings (Banner + News-Ticker)
     const res = await fetch(SETTINGS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bannerUrl }),
+      body: JSON.stringify({
+        bannerUrl,
+        newsTickerText
+      }),
     });
 
     if (!res.ok) throw new Error('Speichern fehlgeschlagen');
 
     await loadBannerSettings();
-    alert('Banner erfolgreich gespeichert! Die \u00c4nderung ist sofort auf der Startseite sichtbar.');
+    alert('Banner und News-Ticker erfolgreich gespeichert! Die \u00c4nderung ist sofort auf der Startseite sichtbar.');
   } catch (err) {
     alert('Fehler: ' + err.message);
   } finally {
@@ -2523,12 +2537,14 @@ document.getElementById('banner-remove').addEventListener('click', async () => {
     const res = await fetch(SETTINGS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bannerUrl: '' }),
+      body: JSON.stringify({ bannerUrl: '', newsTickerText: '' }),
     });
 
     if (!res.ok) throw new Error('Fehler beim Entfernen');
     document.getElementById('banner-url').value = '';
     document.getElementById('banner-file').value = '';
+    const newsTickerTextInput = document.getElementById('news-ticker-text-input');
+    if (newsTickerTextInput) newsTickerTextInput.value = '';
     await loadBannerSettings();
     alert('Banner wurde entfernt.');
   } catch (err) {
