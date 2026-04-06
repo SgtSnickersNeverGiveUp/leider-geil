@@ -5,7 +5,7 @@ const STORE_NAME = "videos";
 export default async (req) => {
   const store = getStore(STORE_NAME);
 
-  // POST – Add new video
+  // POST – Add new video (YouTube oder Twitch)
   if (req.method === "POST") {
     try {
       const body = await req.json();
@@ -18,21 +18,38 @@ export default async (req) => {
         });
       }
 
-      // Extract YouTube video ID from various URL formats
+      // Plattform + ID aus URL erkennen
       let videoId = null;
+      let platform = null;
+      let thumbnail = "";
+
       try {
         const parsed = new URL(url);
-        if (parsed.hostname.includes("youtu.be")) {
-          videoId = parsed.pathname.slice(1);
-        } else if (parsed.hostname.includes("youtube.com")) {
-          videoId = parsed.searchParams.get("v") || parsed.pathname.split("/").pop();
+        const host = parsed.hostname;
+
+        // YouTube
+        if (host.includes("youtu.be") || host.includes("youtube.com")) {
+          platform = "youtube";
+          if (host.includes("youtu.be")) {
+            videoId = parsed.pathname.slice(1);
+          } else {
+            videoId = parsed.searchParams.get("v") || parsed.pathname.split("/").pop();
+          }
+          thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+        // Twitch (z.B. https://www.twitch.tv/videos/2734016831)
+        else if (host.includes("twitch.tv")) {
+          platform = "twitch";
+          const parts = parsed.pathname.split("/");
+          videoId = parts.pop() || parts.pop(); // letztes Segment
+          thumbnail = "/assets/img/twitch-placeholder.jpg";
         }
       } catch {
-        // not a valid URL
+        // ungültige URL
       }
 
-      if (!videoId) {
-        return new Response(JSON.stringify({ error: "Ungültiger YouTube-Link." }), {
+      if (!videoId || !platform) {
+        return new Response(JSON.stringify({ error: "Ungültiger Video-Link (nur YouTube oder Twitch)." }), {
           status: 400,
           headers: { "Content-Type": "application/json" },
         });
@@ -44,7 +61,8 @@ export default async (req) => {
         title,
         url,
         videoId,
-        thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        platform,   // wichtig fürs Frontend
+        thumbnail,
         createdAt: new Date().toISOString(),
       };
 
@@ -73,7 +91,7 @@ export default async (req) => {
         if (data) videos.push(data);
       }
 
-      // Sort newest first
+      // Neueste zuerst
       videos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       return new Response(JSON.stringify(videos), {
